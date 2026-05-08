@@ -11,6 +11,7 @@ Use this for local development against a local PostgreSQL database.
 
 ```env
 DATABASE_URL="postgresql://linguaai:linguaai@localhost:5432/linguaai_dev?schema=public"
+REDIS_URL="redis://localhost:6379"
 MODEL_API_KEY="replace-with-local-model-key"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
 MODEL_NAME="MiniMax-M2.7-highspeed"
@@ -37,6 +38,7 @@ Use this for automated tests and isolated QA environments.
 
 ```env
 DATABASE_URL="postgresql://linguaai:linguaai@localhost:5432/linguaai_test?schema=public"
+REDIS_URL=""
 MODEL_API_KEY="test-placeholder"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
 MODEL_NAME="MiniMax-M2.7-highspeed"
@@ -63,6 +65,7 @@ Use hosting-provider secret storage for production values.
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/linguaai?schema=public"
+REDIS_URL="rediss://USER:PASSWORD@HOST:6379"
 MODEL_API_KEY="set-in-hosting-provider"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
 MODEL_NAME="MiniMax-M2.7-highspeed"
@@ -86,6 +89,16 @@ mode for Next.js; overriding it in `.env.local` can produce invalid production
 chunks.
 
 ## Sprint 3 Speech Keys
+
+## Distributed Rate Limiting
+
+API routes call a shared rate limiter before auth, chat, and speech work. Set
+`REDIS_URL` to a Redis-compatible connection string to use a distributed counter
+across serverless instances. Local development can use
+`redis://localhost:6379`; hosted Redis providers usually require `rediss://...`.
+If `REDIS_URL` is empty or Redis is unavailable, the server falls back to the
+in-process limiter so requests fail closed as rate-limited only after local
+thresholds are reached, rather than crashing the API route.
 
 ## Model API
 

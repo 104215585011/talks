@@ -20,7 +20,7 @@ function encodeSse(event: string, data: unknown) {
 }
 
 export async function POST(request: Request) {
-  const rateLimit = checkRateLimit(request, { limit: 60, windowMs: 60_000 });
+  const rateLimit = await checkRateLimit(request, { limit: 60, windowMs: 60_000 });
 
   if (!rateLimit.allowed) {
     return rateLimitError(rateLimit.retryAfterSeconds);

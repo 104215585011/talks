@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { POST as login } from "./login/route";
 import { POST as register } from "./register/route";
+import { resetRateLimitForTests } from "@/lib/api/rate-limit";
 import { verifyAccessToken } from "@/lib/auth/auth-service";
 import { prisma } from "@/lib/db/client";
 
@@ -61,6 +62,7 @@ describe("auth API routes", () => {
 
   beforeEach(() => {
     process.env.JWT_SECRET = jwtSecret;
+    resetRateLimitForTests();
   });
 
   afterEach(() => {
@@ -162,5 +164,22 @@ describe("auth API routes", () => {
       sub: "user_1",
       email: "learner@example.com"
     });
+  });
+
+  test("POST /api/auth/login returns 429 after the configured local threshold", async () => {
+    const statuses: number[] = [];
+
+    for (let index = 0; index < 25; index += 1) {
+      const response = await login(
+        makeRequest("/api/auth/login", {
+          email: "not-an-email",
+          password: "x"
+        })
+      );
+      statuses.push(response.status);
+    }
+
+    expect(statuses.filter((status) => status === 422)).toHaveLength(20);
+    expect(statuses.filter((status) => status === 429)).toHaveLength(5);
   });
 });
