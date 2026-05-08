@@ -34,6 +34,7 @@ playwright-report
 storybook-static
 .storybook-home
 test-results
+.tmp
 
 # prisma
 prisma/dev.db
