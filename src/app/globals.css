@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-elevated: #111827;
+  --bg-glass: rgba(255, 255, 255, 0.07);
+  --color-primary: #1a73e8;
+  --color-accent: #00e5ff;
+  --color-purple: #7c4dff;
+  --color-success: #45f5a5;
+  --color-warning: #ffd166;
+  --color-danger: #ff6b7a;
+  --font-display: "Orbitron";
+  --font-sans: "Inter";
+  --font-mono: "Space Grotesk";
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(0, 229, 255, 0.12), transparent 28rem),
+    radial-gradient(circle at 82% 18%, rgba(124, 77, 255, 0.14), transparent 24rem),
+    var(--bg-primary);
+  color: #f8fafc;
+  font-family: var(--font-sans), "Noto Sans SC", system-ui, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@layer components {
+  .glass-panel {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.045)),
+      rgba(10, 14, 26, 0.62);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(22px) saturate(135%);
+  }
+
+  .focus-ring {
+    outline: none;
+    box-shadow:
+      0 0 0 1px rgba(0, 229, 255, 0.6),
+      0 0 0 6px rgba(0, 229, 255, 0.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

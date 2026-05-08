@@ -1,0 +1,97 @@
+# Environment Templates
+
+LinguaAI separates development, test, and production configuration. Real API keys and
+database credentials must never be committed.
+
+## Local Development
+
+Template: `.env.local.example`
+
+Use this for local development against a local PostgreSQL database.
+
+```env
+NODE_ENV=development
+DATABASE_URL="postgresql://linguaai:linguaai@localhost:5432/linguaai_dev?schema=public"
+CLAUDE_API_KEY="replace-with-local-claude-key"
+FISH_AUDIO_API_KEY="replace-with-local-fish-audio-key"
+FISH_AUDIO_MODEL="s2-pro"
+FISH_AUDIO_REFERENCE_ID_EMMA="replace-with-emma-reference-id"
+FISH_AUDIO_REFERENCE_ID_JAKE="replace-with-jake-reference-id"
+FISH_AUDIO_REFERENCE_ID_SOPHIE="replace-with-sophie-reference-id"
+FISH_AUDIO_REFERENCE_ID_KENJI="replace-with-kenji-reference-id"
+FISH_AUDIO_REFERENCE_ID_CARLOS="replace-with-carlos-reference-id"
+AZURE_TTS_API_KEY="replace-with-azure-tts-key"
+AZURE_TTS_REGION="replace-with-azure-region"
+WHISPER_API_KEY="replace-with-whisper-api-key"
+WHISPER_MODEL="whisper-1"
+JWT_SECRET="replace-with-local-dev-secret"
+MESSAGE_ENCRYPTION_KEY="replace-with-32-byte-local-message-secret"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+## Test
+
+Template: `.env.test.example`
+
+Use this for automated tests and isolated QA environments.
+
+```env
+NODE_ENV=test
+DATABASE_URL="postgresql://linguaai:linguaai@localhost:5432/linguaai_test?schema=public"
+CLAUDE_API_KEY="test-placeholder"
+FISH_AUDIO_API_KEY="test-placeholder"
+FISH_AUDIO_MODEL="s2-pro"
+FISH_AUDIO_REFERENCE_ID_EMMA="test-placeholder"
+FISH_AUDIO_REFERENCE_ID_JAKE="test-placeholder"
+FISH_AUDIO_REFERENCE_ID_SOPHIE="test-placeholder"
+FISH_AUDIO_REFERENCE_ID_KENJI="test-placeholder"
+FISH_AUDIO_REFERENCE_ID_CARLOS="test-placeholder"
+AZURE_TTS_API_KEY="test-placeholder"
+AZURE_TTS_REGION="test-placeholder"
+WHISPER_API_KEY="test-placeholder"
+WHISPER_MODEL="whisper-1"
+JWT_SECRET="replace-with-test-secret"
+MESSAGE_ENCRYPTION_KEY="replace-with-32-byte-test-message-secret"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+## Production
+
+Template: `.env.production.example`
+
+Use hosting-provider secret storage for production values.
+
+```env
+NODE_ENV=production
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/linguaai?schema=public"
+CLAUDE_API_KEY="set-in-hosting-provider"
+FISH_AUDIO_API_KEY="set-in-hosting-provider"
+FISH_AUDIO_MODEL="s2-pro"
+FISH_AUDIO_REFERENCE_ID_EMMA="set-in-hosting-provider"
+FISH_AUDIO_REFERENCE_ID_JAKE="set-in-hosting-provider"
+FISH_AUDIO_REFERENCE_ID_SOPHIE="set-in-hosting-provider"
+FISH_AUDIO_REFERENCE_ID_KENJI="set-in-hosting-provider"
+FISH_AUDIO_REFERENCE_ID_CARLOS="set-in-hosting-provider"
+AZURE_TTS_API_KEY="set-in-hosting-provider"
+AZURE_TTS_REGION="set-in-hosting-provider"
+WHISPER_API_KEY="set-in-hosting-provider"
+WHISPER_MODEL="whisper-1"
+JWT_SECRET="set-in-hosting-provider"
+MESSAGE_ENCRYPTION_KEY="set-in-hosting-provider"
+NEXT_PUBLIC_APP_URL="https://linguaai.example.com"
+```
+
+## Sprint 3 Speech Keys
+
+`POST /api/speech/synthesize` uses Fish Audio first. Fill `FISH_AUDIO_API_KEY`
+with your Fish Audio token and the five `FISH_AUDIO_REFERENCE_ID_*` values with
+the production reference IDs selected for Emma, Jake, Sophie, Kenji, and Carlos.
+`FISH_AUDIO_MODEL` defaults to `s2-pro`. If Fish Audio is not configured or
+returns a non-OK response, the server attempts Azure TTS with
+`AZURE_TTS_API_KEY` and `AZURE_TTS_REGION`; local development falls back to a
+tiny WAV response so UI and tests do not block on external credentials.
+
+`POST /api/speech/recognize` is the server fallback for browsers without Web
+Speech API support. Set `WHISPER_API_KEY` and optionally `WHISPER_MODEL` when
+you want remote transcription; otherwise the endpoint returns an empty local
+fallback transcript.

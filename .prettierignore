@@ -1,0 +1,8 @@
+.next
+.storybook-home
+coverage
+node_modules
+playwright-report
+prisma/migrations
+storybook-static
+test-results

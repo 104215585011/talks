@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SessionStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  passwordHash   String    @default("") @map("password_hash")
+  nativeLanguage String?   @map("native_language")
+  targetLanguage String?   @map("target_language")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  sessions       Session[]
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique @map("token_hash")
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model Character {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  name         String
+  locale       String
+  voice        String    @default("")
+  bio          String    @default("")
+  style        String    @default("")
+  systemPrompt String    @map("system_prompt")
+  avatarUrl    String?   @map("avatar_url")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  sessions     Session[]
+
+  @@map("characters")
+}
+
+model Session {
+  id          String        @id @default(cuid())
+  userId      String        @map("user_id")
+  characterId String        @map("character_id")
+  title       String?
+  status      SessionStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  character   Character     @relation(fields: [characterId], references: [id], onDelete: Restrict)
+  messages    Message[]
+
+  @@index([userId])
+  @@index([characterId])
+  @@index([status])
+  @@map("sessions")
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  sessionId      String      @map("session_id")
+  role           MessageRole
+  content        String
+  contentIv      String?     @map("content_iv")
+  contentAuthTag String?     @map("content_auth_tag")
+  audioUrl       String?     @map("audio_url")
+  metadata       Json?
+  createdAt      DateTime    @default(now()) @map("created_at")
+  session        Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("messages")
+}
