@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { handleApiError, getJwtSecret } from "@/lib/api/http";
+import { handleApiError, getJwtSecret, rateLimitError } from "@/lib/api/http";
+import { checkRateLimit } from "@/lib/api/rate-limit";
 import { loginUser } from "@/lib/auth/auth-service";
 import { prisma } from "@/lib/db/client";
 
@@ -9,6 +10,12 @@ const loginSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const rateLimit = checkRateLimit(request, { limit: 20, windowMs: 60_000 });
+
+  if (!rateLimit.allowed) {
+    return rateLimitError(rateLimit.retryAfterSeconds);
+  }
+
   try {
     const body = loginSchema.parse(await request.json());
     const result = await loginUser(prisma, {

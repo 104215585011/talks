@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { jsonError, handleApiError } from "@/lib/api/http";
+import { jsonError, handleApiError, rateLimitError } from "@/lib/api/http";
+import { checkRateLimit } from "@/lib/api/rate-limit";
 import { authenticateRequest } from "@/lib/auth/request-auth";
 import { getCharacterById } from "@/lib/characters/characters";
 import { getMessageEncryptionSecret } from "@/lib/chat/env";
@@ -19,6 +20,12 @@ function encodeSse(event: string, data: unknown) {
 }
 
 export async function POST(request: Request) {
+  const rateLimit = checkRateLimit(request, { limit: 60, windowMs: 60_000 });
+
+  if (!rateLimit.allowed) {
+    return rateLimitError(rateLimit.retryAfterSeconds);
+  }
+
   const auth = await authenticateRequest(request);
 
   if (!auth) {

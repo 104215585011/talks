@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { jsonError, handleApiError } from "@/lib/api/http";
+import { jsonError, handleApiError, rateLimitError } from "@/lib/api/http";
+import { checkRateLimit } from "@/lib/api/rate-limit";
 import { authenticateRequest } from "@/lib/auth/request-auth";
 import { createSpeechSynthesizer } from "@/lib/speech/speech-service";
 
@@ -9,6 +10,12 @@ const synthesizeSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const rateLimit = checkRateLimit(request, { limit: 60, windowMs: 60_000 });
+
+  if (!rateLimit.allowed) {
+    return rateLimitError(rateLimit.retryAfterSeconds);
+  }
+
   const auth = await authenticateRequest(request);
 
   if (!auth) {

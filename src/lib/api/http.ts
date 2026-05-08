@@ -12,6 +12,23 @@ export function jsonError(status: number, code: string, message: string) {
   );
 }
 
+export function rateLimitError(retryAfterSeconds: number) {
+  return Response.json(
+    {
+      error: {
+        code: "RATE_LIMITED",
+        message: "Too many requests"
+      }
+    },
+    {
+      headers: {
+        "retry-after": String(retryAfterSeconds)
+      },
+      status: 429
+    }
+  );
+}
+
 export function handleApiError(error: unknown) {
   if (error instanceof ZodError) {
     return jsonError(422, "VALIDATION_ERROR", error.issues[0]?.message ?? "Invalid request body");
