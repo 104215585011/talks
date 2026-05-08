@@ -5,7 +5,7 @@ import { LazyStarfield } from "@/components/effects/LazyStarfield";
 export default function RegisterPage() {
   return (
     <main className="relative min-h-screen overflow-hidden px-6 py-8">
-      <LazyStarfield />
+      <LazyStarfield density={400} />
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-between gap-10">
         <section className="hidden max-w-xl lg:block">
           <p className="font-mono text-sm uppercase tracking-[0.2em] text-brand-purple">LinguaAI</p>

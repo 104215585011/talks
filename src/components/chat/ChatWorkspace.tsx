@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Languages, Mic, Send, Sparkles } from "lucide-react";
+import { Languages, Menu, Mic, Send, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { readAuthSession } from "@/lib/auth/client-session";
@@ -28,6 +28,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isMentorDrawerOpen, setIsMentorDrawerOpen] = useState(false);
   const [learningFeedback, setLearningFeedback] = useState<Record<string, LearningFeedbackData>>(
     {}
   );
@@ -343,39 +344,91 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
     return null;
   }
 
+  function selectCharacter(characterId: string) {
+    setSelectedCharacterId(characterId);
+    window.localStorage.setItem("linguaai.characterId", characterId);
+    setIsMentorDrawerOpen(false);
+  }
+
+  const mentorList = (
+    <div className="mt-4 space-y-2">
+      {characters.map((character) => (
+        <button
+          className={`w-full rounded-control px-3 py-3 text-left text-sm transition hover:bg-white/10 ${
+            selectedCharacterId === character.id
+              ? "bg-white/[0.12] text-white shadow-glow"
+              : "text-slate-300"
+          }`}
+          key={character.id}
+          onClick={() => selectCharacter(character.id)}
+          type="button"
+        >
+          <span className="block font-semibold">{character.name}</span>
+          <span className="block text-xs text-slate-400">{character.language}</span>
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="relative z-10 mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl grid-cols-1 gap-5 lg:grid-cols-[18rem_1fr]">
-      <aside className="glass-panel rounded-lg p-4">
+      <aside className="glass-panel hidden rounded-lg p-4 lg:block">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">Mentor</p>
-        <div className="mt-4 space-y-2">
-          {characters.map((character) => (
-            <button
-              className={`w-full rounded-control px-3 py-3 text-left text-sm transition hover:bg-white/10 ${
-                selectedCharacterId === character.id
-                  ? "bg-white/[0.12] text-white shadow-glow"
-                  : "text-slate-300"
-              }`}
-              key={character.id}
-              onClick={() => {
-                setSelectedCharacterId(character.id);
-                window.localStorage.setItem("linguaai.characterId", character.id);
-              }}
-              type="button"
-            >
-              <span className="block font-semibold">{character.name}</span>
-              <span className="block text-xs text-slate-400">{character.language}</span>
-            </button>
-          ))}
-        </div>
+        {mentorList}
       </aside>
+
+      {isMentorDrawerOpen ? (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <button
+            aria-label="Close mentor drawer"
+            className="absolute inset-0 h-full w-full bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsMentorDrawerOpen(false)}
+            type="button"
+          />
+          <section
+            aria-label="Choose mentor"
+            aria-modal="true"
+            className="glass-panel absolute inset-y-0 left-0 w-[min(20rem,86vw)] rounded-r-lg border-r border-white/15 p-4 shadow-glow"
+            role="dialog"
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">
+                Mentor
+              </p>
+              <Button
+                aria-label="Close mentor drawer"
+                icon={<X size={17} />}
+                onClick={() => setIsMentorDrawerOpen(false)}
+                size="icon"
+                variant="ghost"
+              >
+                Close mentor drawer
+              </Button>
+            </div>
+            {mentorList}
+          </section>
+        </div>
+      ) : null}
 
       <section className="glass-panel flex min-h-[40rem] flex-col rounded-lg">
         <header className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <div>
-            <p className="font-display text-xl font-semibold text-white">
-              {selectedCharacter.name}
-            </p>
-            <p className="text-sm text-slate-400">{selectedCharacter.style}</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <Button
+              aria-label="Choose mentor"
+              className="lg:hidden"
+              icon={<Menu size={17} />}
+              onClick={() => setIsMentorDrawerOpen(true)}
+              size="icon"
+              variant="secondary"
+            >
+              Choose mentor
+            </Button>
+            <div className="min-w-0">
+              <p className="truncate font-display text-xl font-semibold text-white">
+                {selectedCharacter.name}
+              </p>
+              <p className="truncate text-sm text-slate-400">{selectedCharacter.style}</p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button

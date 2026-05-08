@@ -24,6 +24,17 @@ describe("design system primitives", () => {
     expect(button).toHaveClass("disabled:cursor-not-allowed");
   });
 
+  it("renders icon-only buttons without duplicating the icon", () => {
+    render(
+      <Button aria-label="Open menu" icon={<span data-testid="menu-icon" />} size="icon">
+        Open menu
+      </Button>
+    );
+
+    expect(screen.getByRole("button", { name: "Open menu" })).toBeInTheDocument();
+    expect(screen.getAllByTestId("menu-icon")).toHaveLength(1);
+  });
+
   it("associates input labels, helper text, and error text", () => {
     render(
       <Input

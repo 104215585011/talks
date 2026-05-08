@@ -49,15 +49,28 @@ export function Button({
       type={type}
       {...props}
     >
-      {isLoading ? (
-        <span
-          aria-hidden="true"
-          className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
-        />
+      {size === "icon" ? (
+        isLoading ? (
+          <span
+            aria-hidden="true"
+            className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+          />
+        ) : (
+          (icon ?? children)
+        )
       ) : (
-        icon
+        <>
+          {isLoading ? (
+            <span
+              aria-hidden="true"
+              className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+            />
+          ) : (
+            icon
+          )}
+          {children}
+        </>
       )}
-      {size === "icon" ? (icon ?? children) : children}
     </button>
   );
 }
