@@ -78,17 +78,36 @@ async function timedFetch(path, options = {}) {
   let bodyText = "";
   let bytes = 0;
   let error = null;
+  let firstByteMs = null;
 
   try {
+    const requestStarted = performance.now();
     response = await fetch(`${BASE_URL}${path}`, {
       ...options,
       signal: AbortSignal.timeout(options.timeoutMs ?? 30000)
     });
-    const arrayBuffer = await response.arrayBuffer();
-    bytes = arrayBuffer.byteLength;
+    const reader = response.body?.getReader();
+    const chunks = [];
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        if (value) {
+          firstByteMs ??= Math.round(performance.now() - requestStarted);
+          bytes += value.byteLength;
+          chunks.push(value);
+        }
+      }
+    }
+
     const contentType = response.headers.get("content-type") ?? "";
     if (contentType.includes("application/json") || bytes < 2048) {
-      bodyText = Buffer.from(arrayBuffer).toString("utf8");
+      bodyText = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))).toString("utf8");
     }
   } catch (caught) {
     error = caught instanceof Error ? caught.message : String(caught);
@@ -99,6 +118,7 @@ async function timedFetch(path, options = {}) {
     contentType: response?.headers.get("content-type") ?? null,
     durationMs: Math.round(performance.now() - started),
     error,
+    firstByteMs,
     speechProvider: response?.headers.get("x-speech-provider") ?? null,
     status: response?.status ?? null,
     bodyText

@@ -71,6 +71,7 @@ const CHARACTER_VOICE_CONFIG: Record<string, Omit<VoiceConfig, "voiceId"> & { en
 };
 
 const LOCAL_WAV_BASE64 = "UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";
+const FISH_AUDIO_DEFAULT_LATENCY = "balanced";
 
 export function isConfiguredSecret(value: string | undefined) {
   return Boolean(
@@ -144,7 +145,7 @@ export function createSpeechSynthesizer({
           body: JSON.stringify({
             chunk_length: 300,
             format: "mp3",
-            latency: "normal",
+            latency: env.FISH_AUDIO_LATENCY ?? FISH_AUDIO_DEFAULT_LATENCY,
             normalize: true,
             reference_id: voice.voiceId,
             sample_rate: 44100,

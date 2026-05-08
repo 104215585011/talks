@@ -16,6 +16,7 @@ MODEL_API_KEY="replace-with-local-model-key"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
 MODEL_NAME="MiniMax-M2.7-highspeed"
 FISH_AUDIO_API_KEY="replace-with-local-fish-audio-key"
+FISH_AUDIO_LATENCY="balanced"
 FISH_AUDIO_MODEL="s2-pro"
 FISH_AUDIO_REFERENCE_ID_EMMA="replace-with-emma-reference-id"
 FISH_AUDIO_REFERENCE_ID_JAKE="replace-with-jake-reference-id"
@@ -42,6 +43,7 @@ MODEL_API_KEY="test-placeholder"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
 MODEL_NAME="MiniMax-M2.7-highspeed"
 FISH_AUDIO_API_KEY="test-placeholder"
+FISH_AUDIO_LATENCY="balanced"
 FISH_AUDIO_MODEL="s2-pro"
 FISH_AUDIO_REFERENCE_ID_EMMA="test-placeholder"
 FISH_AUDIO_REFERENCE_ID_JAKE="test-placeholder"
@@ -68,6 +70,7 @@ MODEL_API_KEY="set-in-hosting-provider"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
 MODEL_NAME="MiniMax-M2.7-highspeed"
 FISH_AUDIO_API_KEY="set-in-hosting-provider"
+FISH_AUDIO_LATENCY="balanced"
 FISH_AUDIO_MODEL="s2-pro"
 FISH_AUDIO_REFERENCE_ID_EMMA="set-in-hosting-provider"
 FISH_AUDIO_REFERENCE_ID_JAKE="set-in-hosting-provider"
@@ -94,8 +97,9 @@ deterministic fallback stream for development and tests.
 `POST /api/speech/synthesize` uses Fish Audio first. Fill `FISH_AUDIO_API_KEY`
 with your Fish Audio token and the five `FISH_AUDIO_REFERENCE_ID_*` values with
 the production reference IDs selected for Emma, Jake, Sophie, Kenji, and Carlos.
-`FISH_AUDIO_MODEL` defaults to `s2-pro`. If Fish Audio is not configured or
-returns a non-OK response, the server attempts Azure TTS with
+`FISH_AUDIO_MODEL` defaults to `s2-pro`; `FISH_AUDIO_LATENCY` defaults to
+`balanced` to reduce first-audio latency while preserving voice quality. If Fish
+Audio is not configured or returns a non-OK response, the server attempts Azure TTS with
 `AZURE_TTS_API_KEY` and `AZURE_TTS_REGION`; local development falls back to a
 tiny WAV response so UI and tests do not block on external credentials.
 

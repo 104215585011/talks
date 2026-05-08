@@ -75,6 +75,7 @@ describe("speech service", () => {
     expect(requestBody).toEqual(
       expect.objectContaining({
         format: "mp3",
+        latency: "balanced",
         reference_id: "voice-emma",
         text: "Hello there"
       })

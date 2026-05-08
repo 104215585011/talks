@@ -7,6 +7,7 @@ import { Button } from "@/components/ui";
 import { readAuthSession } from "@/lib/auth/client-session";
 import type { LinguaCharacter } from "@/lib/characters/characters";
 import { parseSseChunk } from "@/lib/chat/sse";
+import { playAudioResponse } from "@/lib/speech/browser-audio";
 import { LearningFeedback, type LearningFeedbackData } from "./LearningFeedback";
 import { MessageBubble, type ChatMessage } from "./MessageBubble";
 
@@ -202,10 +203,10 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
         throw new Error("TTS request failed");
       }
 
-      const audio = new Audio(URL.createObjectURL(await response.blob()));
-      audio.onended = () => setSpeakingMessageId(null);
-      audio.onerror = () => setSpeakingMessageId(null);
-      await audio.play();
+      await playAudioResponse(response, {
+        onEnd: () => setSpeakingMessageId(null),
+        onError: () => setSpeakingMessageId(null)
+      });
     } catch {
       setSpeakingMessageId(null);
     }

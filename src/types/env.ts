@@ -6,6 +6,7 @@ export type RequiredServerEnv = {
   MODEL_API_KEY: string;
   MODEL_NAME: string;
   FISH_AUDIO_API_KEY: string;
+  FISH_AUDIO_LATENCY: string;
   FISH_AUDIO_MODEL: string;
   FISH_AUDIO_REFERENCE_ID_CARLOS: string;
   FISH_AUDIO_REFERENCE_ID_EMMA: string;
