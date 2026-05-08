@@ -12,7 +12,9 @@ Use this for local development against a local PostgreSQL database.
 ```env
 NODE_ENV=development
 DATABASE_URL="postgresql://linguaai:linguaai@localhost:5432/linguaai_dev?schema=public"
-CLAUDE_API_KEY="replace-with-local-claude-key"
+MODEL_API_KEY="replace-with-local-model-key"
+MODEL_API_BASE_URL="https://v2.aicodee.com"
+MODEL_NAME="MiniMax-M2.7-highspeed"
 FISH_AUDIO_API_KEY="replace-with-local-fish-audio-key"
 FISH_AUDIO_MODEL="s2-pro"
 FISH_AUDIO_REFERENCE_ID_EMMA="replace-with-emma-reference-id"
@@ -36,7 +38,9 @@ Use this for automated tests and isolated QA environments.
 ```env
 NODE_ENV=test
 DATABASE_URL="postgresql://linguaai:linguaai@localhost:5432/linguaai_test?schema=public"
-CLAUDE_API_KEY="test-placeholder"
+MODEL_API_KEY="test-placeholder"
+MODEL_API_BASE_URL="https://v2.aicodee.com"
+MODEL_NAME="MiniMax-M2.7-highspeed"
 FISH_AUDIO_API_KEY="test-placeholder"
 FISH_AUDIO_MODEL="s2-pro"
 FISH_AUDIO_REFERENCE_ID_EMMA="test-placeholder"
@@ -60,7 +64,9 @@ Use hosting-provider secret storage for production values.
 ```env
 NODE_ENV=production
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/linguaai?schema=public"
-CLAUDE_API_KEY="set-in-hosting-provider"
+MODEL_API_KEY="set-in-hosting-provider"
+MODEL_API_BASE_URL="https://v2.aicodee.com"
+MODEL_NAME="MiniMax-M2.7-highspeed"
 FISH_AUDIO_API_KEY="set-in-hosting-provider"
 FISH_AUDIO_MODEL="s2-pro"
 FISH_AUDIO_REFERENCE_ID_EMMA="set-in-hosting-provider"
@@ -76,6 +82,14 @@ NEXT_PUBLIC_APP_URL="https://linguaai.example.com"
 ```
 
 ## Sprint 3 Speech Keys
+
+## Model API
+
+`POST /api/chat/message` calls an OpenAI-compatible chat completions endpoint.
+Set `MODEL_API_KEY` to your gateway key, `MODEL_API_BASE_URL` to
+`https://v2.aicodee.com`, and `MODEL_NAME` to `MiniMax-M2.7-highspeed`. If
+`MODEL_API_KEY` is unset or still a placeholder, the local chat engine returns a
+deterministic fallback stream for development and tests.
 
 `POST /api/speech/synthesize` uses Fish Audio first. Fill `FISH_AUDIO_API_KEY`
 with your Fish Audio token and the five `FISH_AUDIO_REFERENCE_ID_*` values with

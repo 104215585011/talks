@@ -210,6 +210,8 @@ Required variables:
 - `DATABASE_URL`
 - `JWT_SECRET`
 - `MESSAGE_ENCRYPTION_KEY`
-- `CLAUDE_API_KEY`
+- `MODEL_API_KEY`
+- `MODEL_API_BASE_URL`
+- `MODEL_NAME`
 
-When `CLAUDE_API_KEY` is unset or still a placeholder, the local chat engine returns a deterministic fallback stream for development and tests.
+When `MODEL_API_KEY` is unset or still a placeholder, the local chat engine returns a deterministic fallback stream for development and tests.

@@ -2,7 +2,9 @@ export type RuntimeEnvironment = "development" | "test" | "production";
 
 export type RequiredServerEnv = {
   DATABASE_URL: string;
-  CLAUDE_API_KEY: string;
+  MODEL_API_BASE_URL: string;
+  MODEL_API_KEY: string;
+  MODEL_NAME: string;
   FISH_AUDIO_API_KEY: string;
   FISH_AUDIO_MODEL: string;
   FISH_AUDIO_REFERENCE_ID_CARLOS: string;

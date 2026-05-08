@@ -2,11 +2,11 @@ import type { Message, PrismaClient } from "@prisma/client";
 import { getCharacterById } from "@/lib/characters/characters";
 import { toCharacterSeedData } from "@/lib/characters/character-seed";
 import {
-  createClaudeClient,
+  createModelClient,
   getCharacterSystemPrompt,
   type ChatMessageForModel,
-  type ClaudeClient
-} from "./claude-client";
+  type ModelClient
+} from "./model-client";
 import { decryptMessageContent, encryptMessageContent } from "./message-crypto";
 
 type ChatDb = {
@@ -21,7 +21,7 @@ export type SendChatMessageInput = {
   message: string;
   sessionId?: string;
   encryptionSecret: string;
-  claudeClient?: ClaudeClient;
+  modelClient?: ModelClient;
 };
 
 export type ChatStreamEvent =
@@ -118,7 +118,7 @@ export async function* streamChatMessage(
     }
   });
 
-  const claudeClient = input.claudeClient ?? createClaudeClient();
+  const modelClient = input.modelClient ?? createModelClient();
   const messages = [
     ...toModelMessages(previousMessages, input.encryptionSecret),
     {
@@ -130,7 +130,7 @@ export async function* streamChatMessage(
   let corrections: string[] = [];
   let newWords: string[] = [];
 
-  for await (const event of claudeClient.streamMessage({
+  for await (const event of modelClient.streamMessage({
     characterId: character.id,
     systemPrompt: getCharacterSystemPrompt(character),
     messages

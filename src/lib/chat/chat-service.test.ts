@@ -45,7 +45,7 @@ describe("chat service", () => {
         })
       }
     };
-    const claudeClient = {
+    const modelClient = {
       streamMessage: jest.fn(async function* () {
         yield { type: "delta" as const, text: "Hi" };
         yield { type: "delta" as const, text: " there" };
@@ -62,7 +62,7 @@ describe("chat service", () => {
       characterId: "emma",
       message: "Hello",
       encryptionSecret: "secret-key",
-      claudeClient
+      modelClient
     });
 
     expect(result.sessionId).toBe("session_1");
@@ -75,7 +75,7 @@ describe("chat service", () => {
         where: { id: "emma" }
       })
     );
-    expect(claudeClient.streamMessage).toHaveBeenCalledWith(
+    expect(modelClient.streamMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         characterId: "emma",
         messages: [{ role: "user", content: "Hello" }]

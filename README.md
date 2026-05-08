@@ -82,8 +82,10 @@ Prisma delegates. The actual PostgreSQL migration requires a reachable database.
 Required server-side variables:
 
 - `DATABASE_URL`
-- `CLAUDE_API_KEY`
-- `ELEVENLABS_API_KEY`
+- `MODEL_API_KEY`
+- `MODEL_API_BASE_URL`
+- `MODEL_NAME`
+- `FISH_AUDIO_API_KEY`
 - `JWT_SECRET`
 - `MESSAGE_ENCRYPTION_KEY`
 

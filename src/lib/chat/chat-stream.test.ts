@@ -45,7 +45,7 @@ describe("chat stream service", () => {
         })
       }
     };
-    const claudeClient = {
+    const modelClient = {
       streamMessage: jest.fn(async function* () {
         yield { type: "delta" as const, text: "Hi" };
         yield { type: "delta" as const, text: " there" };
@@ -64,7 +64,7 @@ describe("chat stream service", () => {
       characterId: "emma",
       message: "Hello",
       encryptionSecret: "secret-key",
-      claudeClient
+      modelClient
     })) {
       events.push(event);
     }
