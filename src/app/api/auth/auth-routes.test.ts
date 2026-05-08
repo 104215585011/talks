@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import { hashSync } from "@node-rs/bcrypt";
 import { POST as login } from "./login/route";
 import { POST as register } from "./register/route";
 import { resetRateLimitForTests } from "@/lib/api/rate-limit";
@@ -37,7 +37,7 @@ function makeUser(overrides = {}) {
     id: "user_1",
     email: "learner@example.com",
     name: "Learner",
-    passwordHash: bcrypt.hashSync("Password123!", 10),
+    passwordHash: hashSync("Password123!", 10),
     nativeLanguage: "zh-CN",
     targetLanguage: "en-GB",
     createdAt: now,

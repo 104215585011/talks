@@ -32,6 +32,9 @@ const nextConfig = {
       }
     ];
   },
+  experimental: {
+    serverComponentsExternalPackages: ["@node-rs/bcrypt"]
+  },
   reactStrictMode: true
 };
 

@@ -7,6 +7,7 @@
     "build": "node scripts/next-build.mjs",
     "start": "node scripts/next-start.mjs",
     "audit:lighthouse": "node scripts/lighthouse-audit.mjs",
+    "audit:k6": "node scripts/run-k6.mjs",
     "storybook": "node scripts/storybook.mjs dev -p 6006",
     "build-storybook": "node scripts/storybook.mjs build",
     "lint": "eslint . --max-warnings=0",
@@ -23,9 +24,9 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@node-rs/bcrypt": "^1.10.7",
     "@prisma/client": "^6.7.0",
     "@types/supertest": "^7.2.0",
-    "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",

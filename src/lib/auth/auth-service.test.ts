@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { hashSync } from "@node-rs/bcrypt";
 import {
   AuthError,
   loginUser,
@@ -16,7 +16,7 @@ function makeUser(overrides = {}) {
     id: "user_1",
     email: "learner@example.com",
     name: "Learner",
-    passwordHash: bcrypt.hashSync("Password123!", 10),
+    passwordHash: hashSync("Password123!", 10),
     nativeLanguage: "zh-CN",
     targetLanguage: "en-GB",
     createdAt: now,
