@@ -10,7 +10,6 @@ Template: `.env.local.example`
 Use this for local development against a local PostgreSQL database.
 
 ```env
-NODE_ENV=development
 DATABASE_URL="postgresql://linguaai:linguaai@localhost:5432/linguaai_dev?schema=public"
 MODEL_API_KEY="replace-with-local-model-key"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
@@ -37,7 +36,6 @@ Template: `.env.test.example`
 Use this for automated tests and isolated QA environments.
 
 ```env
-NODE_ENV=test
 DATABASE_URL="postgresql://linguaai:linguaai@localhost:5432/linguaai_test?schema=public"
 MODEL_API_KEY="test-placeholder"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
@@ -64,7 +62,6 @@ Template: `.env.production.example`
 Use hosting-provider secret storage for production values.
 
 ```env
-NODE_ENV=production
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/linguaai?schema=public"
 MODEL_API_KEY="set-in-hosting-provider"
 MODEL_API_BASE_URL="https://v2.aicodee.com"
@@ -83,6 +80,10 @@ JWT_SECRET="set-in-hosting-provider"
 MESSAGE_ENCRYPTION_KEY="set-in-hosting-provider"
 NEXT_PUBLIC_APP_URL="https://linguaai.example.com"
 ```
+
+Do not put `NODE_ENV` in dotenv files. The npm scripts set the correct runtime
+mode for Next.js; overriding it in `.env.local` can produce invalid production
+chunks.
 
 ## Sprint 3 Speech Keys
 

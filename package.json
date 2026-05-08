@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "node scripts/next-build.mjs",
+    "start": "node scripts/next-start.mjs",
     "storybook": "node scripts/storybook.mjs dev -p 6006",
     "build-storybook": "node scripts/storybook.mjs build",
     "lint": "eslint . --max-warnings=0",
