@@ -12,6 +12,5 @@ export type RequiredServerEnv = {
   FISH_AUDIO_REFERENCE_ID_SOPHIE: string;
   AZURE_TTS_API_KEY: string;
   AZURE_TTS_REGION: string;
-  WHISPER_API_KEY: string;
   JWT_SECRET: string;
 };

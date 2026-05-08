@@ -22,8 +22,6 @@ FISH_AUDIO_REFERENCE_ID_KENJI="replace-with-kenji-reference-id"
 FISH_AUDIO_REFERENCE_ID_CARLOS="replace-with-carlos-reference-id"
 AZURE_TTS_API_KEY="replace-with-azure-tts-key"
 AZURE_TTS_REGION="replace-with-azure-region"
-WHISPER_API_KEY="replace-with-whisper-api-key"
-WHISPER_MODEL="whisper-1"
 JWT_SECRET="replace-with-local-dev-secret"
 MESSAGE_ENCRYPTION_KEY="replace-with-32-byte-local-message-secret"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
@@ -48,8 +46,6 @@ FISH_AUDIO_REFERENCE_ID_KENJI="test-placeholder"
 FISH_AUDIO_REFERENCE_ID_CARLOS="test-placeholder"
 AZURE_TTS_API_KEY="test-placeholder"
 AZURE_TTS_REGION="test-placeholder"
-WHISPER_API_KEY="test-placeholder"
-WHISPER_MODEL="whisper-1"
 JWT_SECRET="replace-with-test-secret"
 MESSAGE_ENCRYPTION_KEY="replace-with-32-byte-test-message-secret"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
@@ -74,8 +70,6 @@ FISH_AUDIO_REFERENCE_ID_KENJI="set-in-hosting-provider"
 FISH_AUDIO_REFERENCE_ID_CARLOS="set-in-hosting-provider"
 AZURE_TTS_API_KEY="set-in-hosting-provider"
 AZURE_TTS_REGION="set-in-hosting-provider"
-WHISPER_API_KEY="set-in-hosting-provider"
-WHISPER_MODEL="whisper-1"
 JWT_SECRET="set-in-hosting-provider"
 MESSAGE_ENCRYPTION_KEY="set-in-hosting-provider"
 NEXT_PUBLIC_APP_URL="https://linguaai.example.com"
@@ -92,6 +86,7 @@ returns a non-OK response, the server attempts Azure TTS with
 tiny WAV response so UI and tests do not block on external credentials.
 
 `POST /api/speech/recognize` is the server fallback for browsers without Web
-Speech API support. Set `WHISPER_API_KEY` and optionally `WHISPER_MODEL` when
-you want remote transcription; otherwise the endpoint returns an empty local
+Speech API support. It uses the same `FISH_AUDIO_API_KEY` against Fish Audio ASR
+and sends `ignore_timestamps=true` for lower latency. If Fish Audio is not
+configured or returns a non-OK response, the endpoint returns an empty local
 fallback transcript.

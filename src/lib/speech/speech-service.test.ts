@@ -120,7 +120,7 @@ describe("speech service", () => {
     expect(await streamToText(result.stream)).toBe("azure-audio");
   });
 
-  test("recognizes speech through Whisper fallback when configured", async () => {
+  test("recognizes speech through Fish Audio ASR when configured", async () => {
     const fetchMock = jest.fn().mockResolvedValue(
       Response.json({
         text: "bonjour"
@@ -128,7 +128,7 @@ describe("speech service", () => {
     );
     const recognizer = createSpeechRecognizer({
       env: {
-        WHISPER_API_KEY: "real-whisper-key"
+        FISH_AUDIO_API_KEY: "real-fish-key"
       },
       fetcher: fetchMock
     });
@@ -141,8 +141,19 @@ describe("speech service", () => {
       })
     ).resolves.toEqual({
       language: "fr-FR",
-      provider: "whisper",
+      provider: "fish-audio",
       transcript: "bonjour"
     });
+
+    const [url, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const formData = requestInit.body as FormData;
+
+    expect(url).toBe("https://api.fish.audio/v1/asr");
+    expect(requestInit.headers).toEqual({
+      authorization: "Bearer real-fish-key"
+    });
+    expect(formData.get("audio")).toBeInstanceOf(Blob);
+    expect(formData.get("language")).toBe("fr");
+    expect(formData.get("ignore_timestamps")).toBe("true");
   });
 });

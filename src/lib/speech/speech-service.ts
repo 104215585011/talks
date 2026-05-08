@@ -28,7 +28,7 @@ type RecognizeInput = {
 
 type RecognizeResult = {
   language: string;
-  provider: "local" | "whisper";
+  provider: "fish-audio" | "local";
   transcript: string;
 };
 
@@ -211,17 +211,17 @@ export function createSpeechRecognizer({
 } = {}) {
   return {
     async recognize(input: RecognizeInput): Promise<RecognizeResult> {
-      if (isConfiguredSecret(env.WHISPER_API_KEY)) {
+      if (isConfiguredSecret(env.FISH_AUDIO_API_KEY)) {
         const audioBytes = Uint8Array.from(Buffer.from(input.audioBase64, "base64"));
         const formData = new FormData();
-        formData.append("file", new Blob([audioBytes], { type: input.mimeType }), "speech.webm");
-        formData.append("model", env.WHISPER_MODEL ?? "whisper-1");
+        formData.append("audio", new Blob([audioBytes], { type: input.mimeType }), "speech.webm");
         formData.append("language", input.language.split("-")[0] ?? input.language);
+        formData.append("ignore_timestamps", "true");
 
-        const response = await fetcher("https://api.openai.com/v1/audio/transcriptions", {
+        const response = await fetcher("https://api.fish.audio/v1/asr", {
           body: formData,
           headers: {
-            authorization: `Bearer ${env.WHISPER_API_KEY}`
+            authorization: `Bearer ${env.FISH_AUDIO_API_KEY}`
           },
           method: "POST"
         });
@@ -231,7 +231,7 @@ export function createSpeechRecognizer({
 
           return {
             language: input.language,
-            provider: "whisper",
+            provider: "fish-audio",
             transcript: payload.text ?? ""
           };
         }
