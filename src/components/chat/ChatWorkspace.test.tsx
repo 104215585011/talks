@@ -3,6 +3,7 @@
  */
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { TextDecoder, TextEncoder } from "node:util";
 import { ChatWorkspace } from "./ChatWorkspace";
 import type { LinguaCharacter } from "@/lib/characters/characters";
 
@@ -52,6 +53,8 @@ const characters: LinguaCharacter[] = [
 describe("ChatWorkspace mobile mentor drawer", () => {
   beforeEach(() => {
     replace.mockClear();
+    jest.restoreAllMocks();
+    delete (global as { fetch?: unknown }).fetch;
     window.localStorage.clear();
   });
 
@@ -73,5 +76,83 @@ describe("ChatWorkspace mobile mentor drawer", () => {
     expect(screen.queryByRole("dialog", { name: "Choose mentor" })).not.toBeInTheDocument();
     expect(screen.getAllByText("Jake Wilson").length).toBeGreaterThan(0);
     expect(window.localStorage.getItem("linguaai.characterId")).toBe("jake");
+  });
+
+  it("keeps messages and learning notes isolated per character while switching mentors", async () => {
+    Object.assign(global, { TextDecoder, TextEncoder });
+    let uuid = 0;
+    Object.defineProperty(global, "crypto", {
+      configurable: true,
+      value: {
+        randomUUID: () => `message-${++uuid}`
+      }
+    });
+    global.fetch = jest.fn(async (_input, init) => {
+      const body = JSON.parse(String(init?.body ?? "{}")) as { characterId: string };
+      const encoder = new TextEncoder();
+      const reply = body.characterId === "emma" ? "Emma reply" : "Jake reply";
+      const correction =
+        body.characterId === "emma" ? "Emma correction" : "Jake correction";
+      const chunk = encoder.encode(
+        `event: delta\ndata: ${JSON.stringify({ text: reply })}\n\n` +
+          `event: done\ndata: ${JSON.stringify({
+            corrections: [correction],
+            newWords: [`${body.characterId}-word`],
+            sessionId: `${body.characterId}-session`
+          })}\n\n`
+      );
+      let hasRead = false;
+
+      return {
+        body: {
+          getReader: () => ({
+            read: async () => {
+              if (hasRead) {
+                return { done: true, value: undefined };
+              }
+
+              hasRead = true;
+              return { done: false, value: chunk };
+            }
+          })
+        },
+        ok: true
+      } as Response;
+    }) as jest.Mock;
+
+    render(<ChatWorkspace characters={characters} />);
+
+    await waitFor(() => expect(screen.getAllByText("Emma Clarke").length).toBeGreaterThan(0));
+
+    fireEvent.change(screen.getByPlaceholderText("Message Emma Clarke"), {
+      target: { value: "Hello Emma" }
+    });
+    fireEvent.submit(screen.getByPlaceholderText("Message Emma Clarke").closest("form")!);
+
+    await screen.findByText("Emma reply");
+    expect(screen.getByText("Emma correction")).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("button", { name: /Jake Wilson/ })[0]);
+
+    expect(screen.queryByText("Hello Emma")).not.toBeInTheDocument();
+    expect(screen.queryByText("Emma reply")).not.toBeInTheDocument();
+    expect(screen.queryByText("Emma correction")).not.toBeInTheDocument();
+    expect(screen.getByText("Start with one sentence.")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText("Message Jake Wilson"), {
+      target: { value: "Hello Jake" }
+    });
+    fireEvent.submit(screen.getByPlaceholderText("Message Jake Wilson").closest("form")!);
+
+    await screen.findByText("Jake reply");
+    expect(screen.getByText("Jake correction")).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("button", { name: /Emma Clarke/ })[0]);
+
+    expect(screen.getByText("Hello Emma")).toBeInTheDocument();
+    expect(screen.getByText("Emma reply")).toBeInTheDocument();
+    expect(screen.getByText("Emma correction")).toBeInTheDocument();
+    expect(screen.queryByText("Hello Jake")).not.toBeInTheDocument();
+    expect(screen.queryByText("Jake reply")).not.toBeInTheDocument();
   });
 });

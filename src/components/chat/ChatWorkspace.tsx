@@ -15,10 +15,22 @@ type ChatWorkspaceProps = {
   characters: LinguaCharacter[];
 };
 
+type CharacterSession = {
+  learningFeedback: Record<string, LearningFeedbackData>;
+  messages: ChatMessage[];
+  sessionId: string | undefined;
+};
+
 type BrowserSpeechRecognition = SpeechRecognition & {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
+};
+
+const EMPTY_CHARACTER_SESSION: CharacterSession = {
+  learningFeedback: {},
+  messages: [],
+  sessionId: undefined
 };
 
 export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
@@ -29,14 +41,10 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isMentorDrawerOpen, setIsMentorDrawerOpen] = useState(false);
-  const [learningFeedback, setLearningFeedback] = useState<Record<string, LearningFeedbackData>>(
-    {}
-  );
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [recognitionError, setRecognitionError] = useState<string | null>(null);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [sessionId, setSessionId] = useState<string | undefined>();
   const [selectedCharacterId, setSelectedCharacterId] = useState(characters[0]?.id ?? "emma");
+  const [sessions, setSessions] = useState<Record<string, CharacterSession>>({});
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<BlobPart[]>([]);
@@ -61,6 +69,23 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
     () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
     [characters, selectedCharacterId]
   );
+  const currentSession = sessions[selectedCharacterId] ?? EMPTY_CHARACTER_SESSION;
+  const learningFeedback = currentSession.learningFeedback;
+  const messages = currentSession.messages;
+
+  function updateCharacterSession(
+    characterId: string,
+    update: (session: CharacterSession) => CharacterSession
+  ) {
+    setSessions((current) => {
+      const existingSession = current[characterId] ?? EMPTY_CHARACTER_SESSION;
+
+      return {
+        ...current,
+        [characterId]: update(existingSession)
+      };
+    });
+  }
 
   async function sendMessage(rawText: string) {
     const text = rawText.trim();
@@ -79,21 +104,27 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
       role: "assistant",
       content: ""
     };
+    const characterId = selectedCharacter.id;
+    const requestSessionId = currentSession.sessionId;
 
-    setMessages((current) => [...current, userMessage, assistantMessage]);
-    setLearningFeedback((current) => {
-      const next = { ...current };
-      delete next[assistantMessage.id];
-      return next;
+    updateCharacterSession(characterId, (session) => {
+      const nextLearningFeedback = { ...session.learningFeedback };
+      delete nextLearningFeedback[assistantMessage.id];
+
+      return {
+        ...session,
+        learningFeedback: nextLearningFeedback,
+        messages: [...session.messages, userMessage, assistantMessage]
+      };
     });
     setIsStreaming(true);
 
     try {
       const response = await fetch("/api/chat/message", {
         body: JSON.stringify({
-          characterId: selectedCharacter.id,
+          characterId,
           message: text,
-          sessionId
+          sessionId: requestSessionId
         }),
         headers: {
           authorization: `Bearer ${accessToken}`,
@@ -127,13 +158,14 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
             eventPayload.data
           ) {
             const delta = "text" in eventPayload.data ? String(eventPayload.data.text) : "";
-            setMessages((current) =>
-              current.map((message) =>
+            updateCharacterSession(characterId, (session) => ({
+              ...session,
+              messages: session.messages.map((message) =>
                 message.id === assistantMessage.id
                   ? { ...message, content: message.content + delta }
                   : message
               )
-            );
+            }));
           }
 
           if (
@@ -142,24 +174,29 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
             eventPayload.data
           ) {
             const donePayload = eventPayload.data;
+            const nextSessionId =
+              "sessionId" in donePayload && typeof donePayload.sessionId === "string"
+                ? donePayload.sessionId
+                : undefined;
 
-            if ("sessionId" in donePayload && typeof donePayload.sessionId === "string") {
-              setSessionId(donePayload.sessionId);
-            }
-
-            setLearningFeedback((current) => ({
-              ...current,
-              [assistantMessage.id]: {
-                corrections: toStringArray(donePayload, "corrections"),
-                newWords: toStringArray(donePayload, "newWords")
-              }
+            updateCharacterSession(characterId, (session) => ({
+              ...session,
+              learningFeedback: {
+                ...session.learningFeedback,
+                [assistantMessage.id]: {
+                  corrections: toStringArray(donePayload, "corrections"),
+                  newWords: toStringArray(donePayload, "newWords")
+                }
+              },
+              sessionId: nextSessionId ?? session.sessionId
             }));
           }
         }
       }
     } catch {
-      setMessages((current) =>
-        current.map((message) =>
+      updateCharacterSession(characterId, (session) => ({
+        ...session,
+        messages: session.messages.map((message) =>
           message.id === assistantMessage.id
             ? {
                 ...message,
@@ -167,7 +204,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
               }
             : message
         )
-      );
+      }));
     } finally {
       setIsStreaming(false);
     }
@@ -346,6 +383,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
 
   function selectCharacter(characterId: string) {
     setSelectedCharacterId(characterId);
+    setSpeakingMessageId(null);
     window.localStorage.setItem("linguaai.characterId", characterId);
     setIsMentorDrawerOpen(false);
   }
