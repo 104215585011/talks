@@ -23,10 +23,11 @@ describe("MessageBubble", () => {
       />
     );
 
-    const bubble = screen.getByText("Good evening.").parentElement;
+    const bubble = screen.getByTestId("assistant-audio-footer").parentElement;
 
     expect(bubble).toHaveClass("border-l-2");
     expect(bubble).toHaveClass("border-l-brand-accent");
+    expect(screen.getByTestId("assistant-audio-footer")).toHaveClass("border-t");
   });
 
   it("uses a solid highlighted edge for user messages", () => {
@@ -37,7 +38,7 @@ describe("MessageBubble", () => {
       />
     );
 
-    const bubble = screen.getByText("Hello.").parentElement;
+    const bubble = screen.getByText("Hello.").closest(".rounded-bubble");
 
     expect(bubble).toHaveClass("before:w-1");
     expect(bubble).toHaveClass("before:bg-white/55");

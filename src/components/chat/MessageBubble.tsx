@@ -36,59 +36,64 @@ export function MessageBubble({
       <div className={cn("max-w-[min(42rem,82vw)]", isUser && "order-first")}>
         <div
           className={cn(
-            "relative overflow-hidden rounded-bubble px-4 py-3 text-sm leading-7",
+            "relative overflow-hidden rounded-bubble text-sm leading-7",
             isUser
               ? "bg-user-message text-white shadow-glow before:absolute before:bottom-0 before:left-0 before:top-0 before:w-1 before:bg-white/55 before:content-['']"
               : "glass-panel border-l-2 border-l-brand-accent border-brand-accent/20 text-slate-100 shadow-glow-cyan"
           )}
         >
-          {showTypingIndicator ? (
-            <span
-              aria-label="AI is typing"
-              className="inline-flex items-center gap-1 py-1"
-              role="status"
-            >
-              <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent [animation-delay:-0.2s]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent [animation-delay:-0.1s]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent" />
-            </span>
-          ) : (
-            <ReactMarkdown
-              components={{
-                code: ({ children }) => (
-                  <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-brand-accent">
-                    {children}
-                  </code>
-                ),
-                strong: ({ children }) => (
-                  <strong className="font-semibold text-brand-accent">{children}</strong>
-                ),
-                ul: ({ children }) => <ul className="ml-5 list-disc">{children}</ul>
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
-          )}
-          {isStreaming && !showTypingIndicator ? (
-            <span className="ml-1 inline-block h-4 w-2 animate-cursor-blink bg-brand-accent align-middle" />
-          ) : null}
-        </div>
-        {!isUser ? (
-          <div className="-mt-1 ml-4 flex w-fit items-center gap-2 rounded-bubble rounded-t-none border border-t-0 border-white/[0.12] bg-white/[0.055] px-3 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.16)] backdrop-blur-md">
-            <AudioWaveform isPlaying={isStreaming || isSpeaking} />
-            {onSpeak ? (
-              <button
-                aria-label={`Play ${characterName} voice`}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.15] bg-white/[0.08] text-slate-200 transition hover:border-brand-accent/60 hover:text-white"
-                disabled={!message.content.trim() || isSpeaking}
-                onClick={() => onSpeak(message)}
-                type="button"
+          <div className="px-4 py-3">
+            {showTypingIndicator ? (
+              <span
+                aria-label="AI is typing"
+                className="inline-flex items-center gap-1 py-1"
+                role="status"
               >
-                <Volume2 size={15} />
-              </button>
+                <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent [animation-delay:-0.2s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent [animation-delay:-0.1s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent" />
+              </span>
+            ) : (
+              <ReactMarkdown
+                components={{
+                  code: ({ children }) => (
+                    <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-brand-accent">
+                      {children}
+                    </code>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-brand-accent">{children}</strong>
+                  ),
+                  ul: ({ children }) => <ul className="ml-5 list-disc">{children}</ul>
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            )}
+            {isStreaming && !showTypingIndicator ? (
+              <span className="ml-1 inline-block h-4 w-2 animate-cursor-blink bg-brand-accent align-middle" />
             ) : null}
           </div>
-        ) : null}
+          {!isUser ? (
+            <div
+              className="flex items-center gap-2 border-t border-white/[0.08] bg-white/[0.035] px-4 py-2.5"
+              data-testid="assistant-audio-footer"
+            >
+              <AudioWaveform isPlaying={isStreaming || isSpeaking} />
+              {onSpeak ? (
+                <button
+                  aria-label={`Play ${characterName} voice`}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.15] bg-white/[0.08] text-slate-200 transition hover:border-brand-accent/60 hover:text-white"
+                  disabled={!message.content.trim() || isSpeaking}
+                  onClick={() => onSpeak(message)}
+                  type="button"
+                >
+                  <Volume2 size={15} />
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );
