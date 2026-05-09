@@ -105,6 +105,16 @@ describe("ChatWorkspace mobile mentor drawer", () => {
     expect(await screen.findByTestId("chat-atmosphere")).toHaveClass("bg-chat-atmosphere");
   });
 
+  it("uses a fixed chat window layout with an internally scrolling message list", async () => {
+    mockEmptyHistory();
+    render(<ChatWorkspace characters={characters} />);
+
+    expect(await screen.findByTestId("chat-workspace-shell")).toHaveClass("h-full");
+    expect(screen.getByTestId("chat-panel")).toHaveClass("min-h-0");
+    expect(screen.getByTestId("chat-message-scroll")).toHaveClass("min-h-0");
+    expect(screen.getByTestId("chat-composer")).toHaveClass("flex-shrink-0");
+  });
+
   it("keeps messages and learning notes isolated per character while switching mentors", async () => {
     Object.assign(global, { TextDecoder, TextEncoder });
     let uuid = 0;

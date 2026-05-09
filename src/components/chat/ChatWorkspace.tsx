@@ -673,7 +673,8 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
 
   return (
     <div
-      className="relative grid min-h-[calc(100vh-8rem)] grid-cols-1 gap-5 overflow-hidden rounded-lg lg:grid-cols-[18rem_1fr]"
+      className="relative grid h-full min-h-0 flex-1 grid-cols-1 gap-5 overflow-hidden rounded-lg lg:grid-cols-[18rem_1fr]"
+      data-testid="chat-workspace-shell"
       onMouseMove={handleAtmosphereMove}
     >
       <div
@@ -687,7 +688,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
           } as CSSProperties
         }
       />
-      <aside className="glass-panel hidden rounded-lg p-4 lg:block">
+      <aside className="glass-panel hidden min-h-0 overflow-y-auto rounded-lg p-4 lg:block">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">Mentor</p>
         {mentorList}
       </aside>
@@ -725,8 +726,11 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
         </div>
       ) : null}
 
-      <section className="glass-panel relative flex min-h-[40rem] flex-col rounded-lg">
-        <header className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+      <section
+        className="glass-panel relative flex min-h-0 flex-col overflow-hidden rounded-lg"
+        data-testid="chat-panel"
+      >
+        <header className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <Button
               aria-label="Choose mentor"
@@ -768,7 +772,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
         </header>
 
         <div
-          className="flex-1 space-y-5 overflow-y-auto px-5 py-6"
+          className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-6"
           data-testid="chat-message-scroll"
           onScroll={handleMessagesScroll}
           ref={messagesScrollRef}
@@ -836,7 +840,11 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
           </button>
         ) : null}
 
-        <form className="border-t border-white/10 p-4" onSubmit={handleSubmit}>
+        <form
+          className="flex-shrink-0 border-t border-white/10 p-4"
+          data-testid="chat-composer"
+          onSubmit={handleSubmit}
+        >
           <div className="flex gap-3">
             <textarea
               className="min-h-12 flex-1 resize-none rounded-control border border-white/[0.15] bg-white/[0.08] px-4 py-3 text-sm text-white placeholder:text-slate-500 transition focus:focus-ring focus:ring-1 focus:ring-brand-accent"
