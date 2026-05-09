@@ -7,7 +7,8 @@ import { prisma } from "@/lib/db/client";
 
 const historyQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(50).default(20)
+  pageSize: z.coerce.number().int().min(1).max(50).default(20),
+  sessionId: z.string().min(1).optional()
 });
 
 export async function GET(request: Request) {
@@ -24,7 +25,8 @@ export async function GET(request: Request) {
       userId: auth.userId,
       page: query.page,
       pageSize: query.pageSize,
-      encryptionSecret: getMessageEncryptionSecret()
+      encryptionSecret: getMessageEncryptionSecret(),
+      sessionId: query.sessionId
     });
 
     return Response.json(history);

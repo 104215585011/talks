@@ -10,7 +10,7 @@ import type { LinguaCharacter } from "@/lib/characters/characters";
 const replace = jest.fn();
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ replace })
+  useRouter: () => ({ push: jest.fn(), replace })
 }));
 
 jest.mock("@/lib/auth/client-session", () => ({
@@ -69,7 +69,15 @@ describe("ChatWorkspace mobile mentor drawer", () => {
     window.localStorage.clear();
   });
 
+  function mockEmptyHistory() {
+    global.fetch = jest.fn(async () => ({
+      json: async () => ({ page: 1, pageSize: 20, sessions: [], total: 0 }),
+      ok: true
+    })) as jest.Mock;
+  }
+
   it("opens a compact mentor drawer and closes it after selecting a character", async () => {
+    mockEmptyHistory();
     render(<ChatWorkspace characters={characters} />);
 
     await waitFor(() => expect(screen.getAllByText("Emma Clarke").length).toBeGreaterThan(0));
@@ -87,6 +95,7 @@ describe("ChatWorkspace mobile mentor drawer", () => {
     expect(screen.queryByRole("dialog", { name: "Choose mentor" })).not.toBeInTheDocument();
     expect(screen.getAllByText("Jake Wilson").length).toBeGreaterThan(0);
     expect(window.localStorage.getItem("linguaai.characterId")).toBe("jake");
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
   });
 
   it("keeps messages and learning notes isolated per character while switching mentors", async () => {
@@ -99,6 +108,13 @@ describe("ChatWorkspace mobile mentor drawer", () => {
       }
     });
     global.fetch = jest.fn(async (_input, init) => {
+      if (!init?.body) {
+        return {
+          json: async () => ({ page: 1, pageSize: 20, sessions: [], total: 0 }),
+          ok: true
+        } as Response;
+      }
+
       const body = JSON.parse(String(init?.body ?? "{}")) as { characterId: string };
       const encoder = new TextEncoder();
       const reply = body.characterId === "emma" ? "Emma reply" : "Jake reply";
@@ -177,7 +193,14 @@ describe("ChatWorkspace mobile mentor drawer", () => {
         randomUUID: () => `typing-message-${++uuid}`
       }
     });
-    global.fetch = jest.fn(async () => {
+    global.fetch = jest.fn(async (_input, init) => {
+      if (!init?.body) {
+        return {
+          json: async () => ({ page: 1, pageSize: 20, sessions: [], total: 0 }),
+          ok: true
+        } as Response;
+      }
+
       const encoder = new TextEncoder();
       let hasRead = false;
 
@@ -219,5 +242,154 @@ describe("ChatWorkspace mobile mentor drawer", () => {
 
     expect(await screen.findByText("Delayed reply")).toBeInTheDocument();
     expect(screen.queryByLabelText("AI is typing")).not.toBeInTheDocument();
+  });
+
+  it("loads the latest stored session for the selected character and continues it", async () => {
+    Object.assign(global, { TextDecoder, TextEncoder });
+    let uuid = 0;
+    Object.defineProperty(global, "crypto", {
+      configurable: true,
+      value: {
+        randomUUID: () => `history-message-${++uuid}`
+      }
+    });
+    const fetchMock = jest.fn(async (_input, init) => {
+      if (!init?.body) {
+        return {
+          json: async () => ({
+            page: 1,
+            pageSize: 20,
+            total: 1,
+            sessions: [
+              {
+                id: "emma-session",
+                characterId: "emma",
+                hasMoreMessages: false,
+                messages: [
+                  {
+                    id: "stored-user",
+                    role: "USER",
+                    content: "Stored hello",
+                    createdAt: "2026-05-08T00:00:00.000Z"
+                  },
+                  {
+                    id: "stored-assistant",
+                    role: "ASSISTANT",
+                    content: "Stored reply",
+                    createdAt: "2026-05-08T00:00:01.000Z"
+                  }
+                ]
+              }
+            ]
+          }),
+          ok: true
+        } as Response;
+      }
+
+      const body = JSON.parse(String(init.body)) as { sessionId?: string };
+      const encoder = new TextEncoder();
+
+      return {
+        body: {
+          getReader: () => ({
+            read: jest
+              .fn()
+              .mockResolvedValueOnce({
+                done: false,
+                value: encoder.encode(
+                  `event: done\ndata: ${JSON.stringify({
+                    corrections: [],
+                    newWords: [],
+                    sessionId: body.sessionId
+                  })}\n\n`
+                )
+              })
+              .mockResolvedValueOnce({ done: true, value: undefined })
+          })
+        },
+        ok: true
+      } as Response;
+    });
+    global.fetch = fetchMock as jest.Mock;
+
+    render(<ChatWorkspace characters={characters} />);
+
+    expect(await screen.findByText("Stored hello")).toBeInTheDocument();
+    expect(screen.getByText("Stored reply")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText("Message Emma Clarke"), {
+      target: { value: "Continue" }
+    });
+    fireEvent.submit(screen.getByPlaceholderText("Message Emma Clarke").closest("form")!);
+
+    await waitFor(() => {
+      const postCall = fetchMock.mock.calls.find(([, init]) => init?.body);
+      expect(JSON.parse(String(postCall?.[1]?.body))).toMatchObject({
+        sessionId: "emma-session"
+      });
+    });
+  });
+
+  it("loads earlier messages for the active session without replacing current messages", async () => {
+    Object.assign(global, { TextDecoder, TextEncoder });
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce({
+        json: async () => ({
+          page: 1,
+          pageSize: 20,
+          total: 1,
+          sessions: [
+            {
+              id: "emma-session",
+              characterId: "emma",
+              hasMoreMessages: true,
+              messages: [
+                {
+                  id: "newer-user",
+                  role: "USER",
+                  content: "Newer stored hello",
+                  createdAt: "2026-05-08T00:00:10.000Z"
+                }
+              ]
+            }
+          ]
+        }),
+        ok: true
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          page: 2,
+          pageSize: 20,
+          total: 1,
+          sessions: [
+            {
+              id: "emma-session",
+              characterId: "emma",
+              hasMoreMessages: false,
+              messages: [
+                {
+                  id: "older-user",
+                  role: "USER",
+                  content: "Older stored hello",
+                  createdAt: "2026-05-07T00:00:10.000Z"
+                }
+              ]
+            }
+          ]
+        }),
+        ok: true
+      });
+    global.fetch = fetchMock as jest.Mock;
+
+    render(<ChatWorkspace characters={characters} />);
+
+    expect(await screen.findByText("Newer stored hello")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Load earlier messages" }));
+
+    expect(await screen.findByText("Older stored hello")).toBeInTheDocument();
+    expect(screen.getByText("Newer stored hello")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Load earlier messages" })).not.toBeInTheDocument();
   });
 });

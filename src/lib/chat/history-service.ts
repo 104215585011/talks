@@ -10,6 +10,7 @@ type ListUserHistoryInput = {
   page: number;
   pageSize: number;
   encryptionSecret: string;
+  sessionId?: string;
 };
 
 type SessionWithLatestMessage = {
@@ -44,16 +45,19 @@ function toReadableContent(message: Message, encryptionSecret: string) {
 
 export async function listUserHistory(db: HistoryDb, input: ListUserHistoryInput) {
   const skip = (input.page - 1) * input.pageSize;
+  const sessionSkip = input.sessionId ? 0 : skip;
+  const messageSkip = input.sessionId ? skip : 0;
   const [sessions, total] = await Promise.all([
     db.session.findMany({
       where: {
-        userId: input.userId
+        userId: input.userId,
+        ...(input.sessionId ? { id: input.sessionId } : {})
       },
       orderBy: {
         updatedAt: "desc"
       },
-      skip,
-      take: input.pageSize,
+      skip: sessionSkip,
+      take: input.sessionId ? 1 : input.pageSize,
       include: {
         character: {
           select: {
@@ -65,13 +69,15 @@ export async function listUserHistory(db: HistoryDb, input: ListUserHistoryInput
           orderBy: {
             createdAt: "desc"
           },
-          take: 1
+          skip: messageSkip,
+          take: input.pageSize + 1
         }
       }
     }),
     db.session.count({
       where: {
-        userId: input.userId
+        userId: input.userId,
+        ...(input.sessionId ? { id: input.sessionId } : {})
       }
     })
   ]);
@@ -82,6 +88,7 @@ export async function listUserHistory(db: HistoryDb, input: ListUserHistoryInput
     total,
     sessions: (sessions as SessionWithLatestMessage[]).map((session) => {
       const latestMessage = session.messages[0];
+      const visibleMessages = session.messages.slice(0, input.pageSize);
 
       return {
         id: session.id,
@@ -98,7 +105,16 @@ export async function listUserHistory(db: HistoryDb, input: ListUserHistoryInput
               content: toReadableContent(latestMessage, input.encryptionSecret),
               createdAt: latestMessage.createdAt
             }
-          : null
+          : null,
+        hasMoreMessages: session.messages.length > input.pageSize,
+        messages: visibleMessages
+          .map((message) => ({
+            id: message.id,
+            role: message.role,
+            content: toReadableContent(message, input.encryptionSecret),
+            createdAt: message.createdAt
+          }))
+          .reverse()
       };
     })
   };

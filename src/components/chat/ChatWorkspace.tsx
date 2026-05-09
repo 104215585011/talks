@@ -16,6 +16,10 @@ type ChatWorkspaceProps = {
 };
 
 type CharacterSession = {
+  hasMoreHistory: boolean;
+  historyLoaded: boolean;
+  historyPage: number;
+  isHistoryLoading: boolean;
   learningFeedback: Record<string, LearningFeedbackData>;
   messages: ChatMessage[];
   sessionId: string | undefined;
@@ -28,9 +32,34 @@ type BrowserSpeechRecognition = SpeechRecognition & {
 };
 
 const EMPTY_CHARACTER_SESSION: CharacterSession = {
+  hasMoreHistory: false,
+  historyLoaded: false,
+  historyPage: 0,
+  isHistoryLoading: false,
   learningFeedback: {},
   messages: [],
   sessionId: undefined
+};
+
+type HistoryMessage = {
+  id: string;
+  role: "USER" | "ASSISTANT" | "SYSTEM";
+  content: string;
+  createdAt: string;
+};
+
+type HistorySession = {
+  id: string;
+  characterId: string;
+  hasMoreMessages?: boolean;
+  messages?: HistoryMessage[];
+};
+
+type HistoryResponse = {
+  page: number;
+  pageSize: number;
+  sessions: HistorySession[];
+  total: number;
 };
 
 export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
@@ -84,6 +113,23 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
       messagesEndRef.current.scrollIntoView({ block: "end" });
     }
   }, [isStreaming, messages, selectedCharacterId]);
+
+  useEffect(() => {
+    if (!accessToken || !selectedCharacter) {
+      return;
+    }
+
+    const session = sessions[selectedCharacter.id] ?? EMPTY_CHARACTER_SESSION;
+
+    if (session.historyLoaded || session.isHistoryLoading) {
+      return;
+    }
+
+    void loadCharacterHistory(selectedCharacter.id, 1);
+    // loadCharacterHistory reads the same sessions snapshot already listed here;
+    // adding the function identity would turn every state write into a duplicate fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken, selectedCharacter, sessions]);
 
   function updateCharacterSession(
     characterId: string,
@@ -264,6 +310,91 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
 
     shouldFollowScrollRef.current =
       element.scrollHeight - element.scrollTop - element.clientHeight < 96;
+  }
+
+  async function loadCharacterHistory(characterId: string, page: number) {
+    if (!accessToken) {
+      return;
+    }
+
+    const session = sessions[characterId] ?? EMPTY_CHARACTER_SESSION;
+    const loadingEarlier = page > 1;
+    const scrollElement = messagesScrollRef.current;
+    const previousScrollHeight = scrollElement?.scrollHeight ?? 0;
+
+    if (loadingEarlier && !session.sessionId) {
+      return;
+    }
+
+    updateCharacterSession(characterId, (current) => ({
+      ...current,
+      isHistoryLoading: true
+    }));
+
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: "20"
+      });
+
+      if (loadingEarlier && session.sessionId) {
+        params.set("sessionId", session.sessionId);
+      }
+
+      const response = await fetch(`/api/chat/history?${params.toString()}`, {
+        headers: {
+          authorization: `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("History request failed");
+      }
+
+      const payload = (await response.json()) as HistoryResponse;
+      const historySession = payload.sessions.find(
+        (candidate) => candidate.characterId === characterId
+      );
+      const restoredMessages = (historySession?.messages ?? [])
+        .filter((message) => message.role === "USER" || message.role === "ASSISTANT")
+        .map((message) => ({
+          id: message.id,
+          role: message.role === "ASSISTANT" ? "assistant" : "user",
+          content: message.content
+        })) satisfies ChatMessage[];
+
+      updateCharacterSession(characterId, (current) => {
+        const shouldKeepCurrentMessages = page === 1 && current.messages.length > 0;
+        const nextMessages =
+          page === 1
+            ? shouldKeepCurrentMessages
+              ? current.messages
+              : restoredMessages
+            : mergeHistoryMessages(restoredMessages, current.messages);
+
+        return {
+          ...current,
+          hasMoreHistory: Boolean(historySession?.hasMoreMessages),
+          historyLoaded: true,
+          historyPage: historySession ? page : current.historyPage || 1,
+          isHistoryLoading: false,
+          messages: nextMessages,
+          sessionId: historySession?.id ?? current.sessionId
+        };
+      });
+
+      if (loadingEarlier && scrollElement && typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(() => {
+          scrollElement.scrollTop += scrollElement.scrollHeight - previousScrollHeight;
+        });
+      }
+    } catch {
+      updateCharacterSession(characterId, (current) => ({
+        ...current,
+        historyLoaded: true,
+        isHistoryLoading: false
+      }));
+    }
   }
 
   async function playAssistantAudio(message: ChatMessage) {
@@ -544,6 +675,27 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
           onScroll={handleMessagesScroll}
           ref={messagesScrollRef}
         >
+          {currentSession.isHistoryLoading ? (
+            <div className="h-1 overflow-hidden rounded-full bg-white/[0.08]">
+              <div className="h-full w-1/3 animate-pulse rounded-full bg-brand-accent" />
+            </div>
+          ) : null}
+
+          {currentSession.hasMoreHistory && messages.length > 0 ? (
+            <div className="flex justify-center">
+              <Button
+                disabled={currentSession.isHistoryLoading}
+                onClick={() =>
+                  void loadCharacterHistory(selectedCharacter.id, currentSession.historyPage + 1)
+                }
+                size="sm"
+                variant="secondary"
+              >
+                Load earlier messages
+              </Button>
+            </div>
+          ) : null}
+
           {messages.length === 0 ? (
             <div className="mx-auto flex h-full max-w-2xl flex-col justify-center text-center">
               <p className="font-display text-3xl font-semibold text-white">
@@ -662,6 +814,19 @@ function toStringArray(data: object, key: string) {
         (item): item is string => typeof item === "string"
       )
     : [];
+}
+
+function mergeHistoryMessages(olderMessages: ChatMessage[], currentMessages: ChatMessage[]) {
+  const seen = new Set<string>();
+
+  return [...olderMessages, ...currentMessages].filter((message) => {
+    if (seen.has(message.id)) {
+      return false;
+    }
+
+    seen.add(message.id);
+    return true;
+  });
 }
 
 function characterLanguageToLocale(language: string) {
