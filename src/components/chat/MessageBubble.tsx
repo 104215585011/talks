@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Volume2 } from "lucide-react";
 import { Avatar } from "@/components/ui";
 import { cn } from "@/lib/utils/cn";
 import { AudioWaveform } from "./AudioWaveform";
+
+const MAX_ASSISTANT_CONTENT_HEIGHT = 260;
 
 export type ChatMessage = {
   id: string;
@@ -28,7 +31,21 @@ export function MessageBubble({
   onSpeak
 }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
   const showTypingIndicator = !isUser && isStreaming && message.content.trim().length === 0;
+
+  useEffect(() => {
+    if (isUser || !contentRef.current) {
+      setOverflows(false);
+      setExpanded(false);
+      return;
+    }
+
+    setOverflows(contentRef.current.scrollHeight > MAX_ASSISTANT_CONTENT_HEIGHT);
+    setExpanded(false);
+  }, [isUser, message.content]);
 
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
@@ -42,7 +59,19 @@ export function MessageBubble({
               : "glass-panel border-l-2 border-l-brand-accent border-brand-accent/20 text-slate-100 shadow-glow-cyan"
           )}
         >
-          <div className="px-4 py-3">
+          <div
+            className={cn(
+              "relative overflow-hidden px-4 py-3 transition-[max-height] duration-300 ease-out",
+              !isUser && overflows && !expanded && "pb-10"
+            )}
+            data-testid={!isUser ? "assistant-message-content" : undefined}
+            ref={!isUser ? contentRef : undefined}
+            style={
+              !isUser && overflows
+                ? { maxHeight: expanded ? "none" : `${MAX_ASSISTANT_CONTENT_HEIGHT}px` }
+                : undefined
+            }
+          >
             {showTypingIndicator ? (
               <span
                 aria-label="AI is typing"
@@ -73,7 +102,24 @@ export function MessageBubble({
             {isStreaming && !showTypingIndicator ? (
               <span className="ml-1 inline-block h-4 w-2 animate-cursor-blink bg-brand-accent align-middle" />
             ) : null}
+            {!isUser && overflows && !expanded ? (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[rgba(15,16,28,0.96)] to-transparent"
+                data-testid="assistant-collapse-fade"
+              />
+            ) : null}
           </div>
+          {!isUser && overflows ? (
+            <button
+              aria-label={expanded ? "Show less" : "Show more"}
+              className="flex w-full items-center justify-center border-t border-white/[0.08] bg-white/[0.025] px-4 py-2 text-xs font-medium text-slate-400 transition-colors hover:text-white"
+              onClick={() => setExpanded((current) => !current)}
+              type="button"
+            >
+              {expanded ? "Show less ▴" : "Show more ▾"}
+            </button>
+          ) : null}
           {!isUser ? (
             <div
               className="flex items-center gap-2 border-t border-white/[0.08] bg-white/[0.035] px-4 py-2.5"

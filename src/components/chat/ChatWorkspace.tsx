@@ -81,6 +81,8 @@ const mentorAccentByCharacter: Record<string, string> = {
   sophie: "rgba(124, 77, 255, 0.95)"
 };
 
+const CHAT_BOTTOM_THRESHOLD = 80;
+
 export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   const router = useRouter();
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -93,6 +95,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [selectedCharacterId, setSelectedCharacterId] = useState(characters[0]?.id ?? "emma");
   const [sessions, setSessions] = useState<Record<string, CharacterSession>>({});
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const [atmosphere, setAtmosphere] = useState({ x: 48, y: 38 });
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -125,14 +128,48 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   const learningFeedback = currentSession.learningFeedback;
   const messages = currentSession.messages;
 
-  useEffect(() => {
-    if (
-      shouldFollowScrollRef.current &&
-      typeof messagesEndRef.current?.scrollIntoView === "function"
-    ) {
-      messagesEndRef.current.scrollIntoView({ block: "end" });
+  function isMessagesNearBottom() {
+    const element = messagesScrollRef.current;
+
+    if (!element) {
+      return true;
     }
-  }, [isStreaming, messages, selectedCharacterId]);
+
+    return element.scrollHeight - element.scrollTop - element.clientHeight < CHAT_BOTTOM_THRESHOLD;
+  }
+
+  function scrollToBottom(smooth = true) {
+    if (typeof messagesEndRef.current?.scrollIntoView !== "function") {
+      return;
+    }
+
+    messagesEndRef.current.scrollIntoView({
+      behavior: smooth ? "smooth" : "auto",
+      block: "end"
+    });
+  }
+
+  useEffect(() => {
+    if (shouldFollowScrollRef.current || isMessagesNearBottom()) {
+      shouldFollowScrollRef.current = true;
+      setShowScrollButton(false);
+      scrollToBottom(true);
+      return;
+    }
+
+    if (messages.length > 0) {
+      setShowScrollButton(true);
+    }
+    // The scroll helpers use refs and should run only when rendered messages/streaming change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStreaming, messages]);
+
+  useEffect(() => {
+    shouldFollowScrollRef.current = true;
+    setShowScrollButton(false);
+    window.requestAnimationFrame(() => scrollToBottom(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCharacterId]);
 
   useEffect(() => {
     if (!accessToken || !selectedCharacter) {
@@ -322,14 +359,19 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   }
 
   function handleMessagesScroll() {
-    const element = messagesScrollRef.current;
+    const nearBottom = isMessagesNearBottom();
 
-    if (!element) {
-      return;
+    shouldFollowScrollRef.current = nearBottom;
+
+    if (nearBottom) {
+      setShowScrollButton(false);
     }
+  }
 
-    shouldFollowScrollRef.current =
-      element.scrollHeight - element.scrollTop - element.clientHeight < 96;
+  function handleJumpToLatest() {
+    shouldFollowScrollRef.current = true;
+    setShowScrollButton(false);
+    scrollToBottom(true);
   }
 
   function handleAtmosphereMove(event: MouseEvent<HTMLDivElement>) {
@@ -727,6 +769,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
 
         <div
           className="flex-1 space-y-5 overflow-y-auto px-5 py-6"
+          data-testid="chat-message-scroll"
           onScroll={handleMessagesScroll}
           ref={messagesScrollRef}
         >
@@ -781,6 +824,17 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
           )}
           <div ref={messagesEndRef} />
         </div>
+
+        {showScrollButton ? (
+          <button
+            aria-label="Jump to latest message"
+            className="absolute bottom-24 left-1/2 z-20 -translate-x-1/2 animate-bounce rounded-full bg-brand-primary px-4 py-1.5 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(26,115,232,0.35)] transition hover:bg-[#247df1]"
+            onClick={handleJumpToLatest}
+            type="button"
+          >
+            ↓ New messages
+          </button>
+        ) : null}
 
         <form className="border-t border-white/10 p-4" onSubmit={handleSubmit}>
           <div className="flex gap-3">

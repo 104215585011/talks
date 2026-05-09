@@ -399,4 +399,69 @@ describe("ChatWorkspace mobile mentor drawer", () => {
     expect(screen.getByText("Newer stored hello")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Load earlier messages" })).not.toBeInTheDocument();
   });
+
+  it("shows a new message jump button when streaming continues while the user is reading history", async () => {
+    Object.assign(global, { TextDecoder, TextEncoder });
+    Object.defineProperty(global, "crypto", {
+      configurable: true,
+      value: {
+        randomUUID: jest.fn().mockReturnValueOnce("user-message").mockReturnValueOnce("assistant-message")
+      }
+    });
+    Element.prototype.scrollIntoView = jest.fn();
+
+    let releaseDelta: (value: unknown) => void = () => undefined;
+    const deltaRead = new Promise((resolve) => {
+      releaseDelta = resolve;
+    });
+    const encoder = new TextEncoder();
+
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        json: async () => ({ page: 1, pageSize: 20, sessions: [], total: 0 }),
+        ok: true
+      })
+      .mockResolvedValueOnce({
+        body: {
+          getReader: () => ({
+            read: jest
+              .fn()
+              .mockReturnValueOnce(deltaRead)
+              .mockResolvedValueOnce({ done: true, value: undefined })
+          })
+        },
+        ok: true
+      }) as jest.Mock;
+
+    render(<ChatWorkspace characters={characters} />);
+
+    fireEvent.change(await screen.findByPlaceholderText("Message Emma Clarke"), {
+      target: { value: "Hello from the top" }
+    });
+    fireEvent.submit(screen.getByPlaceholderText("Message Emma Clarke").closest("form")!);
+
+    const messageContainer = await screen.findByTestId("chat-message-scroll");
+    Object.defineProperties(messageContainer, {
+      clientHeight: { configurable: true, value: 300 },
+      scrollHeight: { configurable: true, value: 1000 },
+      scrollTop: { configurable: true, value: 120, writable: true }
+    });
+    fireEvent.scroll(messageContainer);
+
+    releaseDelta({
+      done: false,
+      value: encoder.encode("event: delta\ndata: {\"text\":\"Streaming reply\"}\n\n")
+    });
+
+    expect(await screen.findByRole("button", { name: "Jump to latest message" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Jump to latest message" }));
+
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "end"
+    });
+    expect(screen.queryByRole("button", { name: "Jump to latest message" })).not.toBeInTheDocument();
+  });
 });
