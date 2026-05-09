@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { HomeRedirect } from "@/components/auth/HomeRedirect";
 import { LazyStarfield } from "@/components/effects/LazyStarfield";
 
 const paths = ["Sign in", "Choose a character", "Stream a conversation"];
@@ -7,6 +8,7 @@ const paths = ["Sign in", "Choose a character", "Stream a conversation"];
 export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden px-6 py-8">
+      <HomeRedirect />
       <LazyStarfield />
       <section className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col justify-center">
         <h1 className="max-w-4xl font-display text-5xl font-semibold leading-tight text-white md:text-7xl">

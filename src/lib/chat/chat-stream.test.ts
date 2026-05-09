@@ -74,6 +74,7 @@ describe("chat stream service", () => {
       { type: "delta", text: " there" },
       {
         type: "done",
+        assistantText: "Hi there",
         sessionId: "session_1",
         corrections: ["Say: Hello there."],
         newWords: ["there"]

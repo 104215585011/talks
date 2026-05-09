@@ -82,4 +82,60 @@ describe("chat service", () => {
       })
     );
   });
+
+  test("parses learning notes from structured model text when final fields are empty", async () => {
+    const db = {
+      session: {
+        create: jest.fn().mockResolvedValue({
+          id: "session_1",
+          userId: "user_1",
+          characterId: "emma",
+          title: "I go school yesterday",
+          status: "ACTIVE",
+          createdAt: now,
+          updatedAt: now
+        }),
+        findFirst: jest.fn()
+      },
+      message: {
+        findMany: jest.fn().mockResolvedValue([]),
+        create: jest
+          .fn()
+          .mockResolvedValueOnce(makeMessage("USER", "I go school yesterday"))
+          .mockResolvedValueOnce(makeMessage("ASSISTANT", "You can say: I went to school yesterday."))
+      },
+      character: {
+        upsert: jest.fn().mockResolvedValue({
+          id: "emma"
+        })
+      }
+    };
+    const modelClient = {
+      streamMessage: jest.fn(async function* () {
+        yield { type: "delta" as const, text: "You can say: I went to school yesterday." };
+        yield {
+          type: "delta" as const,
+          text:
+            '\n<learning_notes>{"corrections":["Use went, not go, for past tense."],"newWords":["yesterday"]}</learning_notes>'
+        };
+        yield {
+          type: "final" as const,
+          corrections: [],
+          newWords: []
+        };
+      })
+    };
+
+    const result = await sendChatMessage(db, {
+      userId: "user_1",
+      characterId: "emma",
+      message: "I go school yesterday",
+      encryptionSecret: "secret-key",
+      modelClient
+    });
+
+    expect(result.assistantText).toBe("You can say: I went to school yesterday.");
+    expect(result.corrections).toEqual(["Use went, not go, for past tense."]);
+    expect(result.newWords).toEqual(["yesterday"]);
+  });
 });

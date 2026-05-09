@@ -8,7 +8,12 @@ export default function LoginPage() {
       <LazyStarfield density={400} />
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-between gap-10">
         <section className="hidden max-w-xl lg:block">
-          <p className="font-mono text-sm uppercase tracking-[0.2em] text-brand-accent">LinguaAI</p>
+          <Link
+            className="font-mono text-sm uppercase tracking-[0.2em] text-brand-accent transition hover:text-white"
+            href="/"
+          >
+            LinguaAI
+          </Link>
           <h2 className="mt-5 font-display text-6xl font-semibold leading-tight text-white">
             Speak with characters who remember the nuance.
           </h2>

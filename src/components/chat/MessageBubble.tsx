@@ -28,6 +28,7 @@ export function MessageBubble({
   onSpeak
 }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const showTypingIndicator = !isUser && isStreaming && message.content.trim().length === 0;
 
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
@@ -41,22 +42,34 @@ export function MessageBubble({
               : "glass-panel border-brand-accent/20 text-slate-100 shadow-glow-cyan"
           )}
         >
-          <ReactMarkdown
-            components={{
-              code: ({ children }) => (
-                <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-brand-accent">
-                  {children}
-                </code>
-              ),
-              strong: ({ children }) => (
-                <strong className="font-semibold text-brand-accent">{children}</strong>
-              ),
-              ul: ({ children }) => <ul className="ml-5 list-disc">{children}</ul>
-            }}
-          >
-            {message.content}
-          </ReactMarkdown>
-          {isStreaming ? (
+          {showTypingIndicator ? (
+            <span
+              aria-label="AI is typing"
+              className="inline-flex items-center gap-1 py-1"
+              role="status"
+            >
+              <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent [animation-delay:-0.2s]" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent [animation-delay:-0.1s]" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-brand-accent" />
+            </span>
+          ) : (
+            <ReactMarkdown
+              components={{
+                code: ({ children }) => (
+                  <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-brand-accent">
+                    {children}
+                  </code>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-semibold text-brand-accent">{children}</strong>
+                ),
+                ul: ({ children }) => <ul className="ml-5 list-disc">{children}</ul>
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          )}
+          {isStreaming && !showTypingIndicator ? (
             <span className="ml-1 inline-block h-4 w-2 animate-cursor-blink bg-brand-accent align-middle" />
           ) : null}
         </div>

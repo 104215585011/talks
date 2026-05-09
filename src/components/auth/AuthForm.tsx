@@ -88,7 +88,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     <form className="glass-panel w-full max-w-md rounded-lg p-6" onSubmit={handleSubmit}>
       <div className="mb-6">
         <Badge tone={isRegister ? "purple" : "cyan"}>
-          {isRegister ? "Create account" : "Welcome back"}
+          {isRegister ? "Create account" : "Sign in"}
         </Badge>
         <h1 className="mt-5 font-display text-3xl font-semibold text-white">
           {isRegister ? "Start your language cockpit" : "Sign in to LinguaAI"}
@@ -138,7 +138,13 @@ export function AuthForm({ mode }: AuthFormProps) {
       ) : null}
 
       <Button className="mt-6 w-full" isLoading={isLoading} size="lg" type="submit">
-        {isRegister ? "Create account" : "Sign in"}
+        {isLoading
+          ? isRegister
+            ? "Creating account..."
+            : "Signing in..."
+          : isRegister
+            ? "Create account"
+            : "Sign in"}
       </Button>
     </form>
   );

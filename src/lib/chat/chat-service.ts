@@ -31,10 +31,57 @@ export type ChatStreamEvent =
     }
   | {
       type: "done";
+      assistantText: string;
       sessionId: string;
       corrections: string[];
       newWords: string[];
     };
+
+type ParsedLearningNotes = {
+  assistantText: string;
+  corrections: string[];
+  newWords: string[];
+};
+
+const learningNotesPattern = /<learning_notes>([\s\S]*?)<\/learning_notes>/gi;
+
+export function parseStructuredLearningNotes(assistantText: string): ParsedLearningNotes {
+  const matches = Array.from(assistantText.matchAll(learningNotesPattern));
+
+  if (matches.length === 0) {
+    return {
+      assistantText,
+      corrections: [],
+      newWords: []
+    };
+  }
+
+  const lastMatch = matches[matches.length - 1];
+  const rawJson = lastMatch[1]?.trim() ?? "";
+
+  try {
+    const parsed = JSON.parse(rawJson) as {
+      corrections?: unknown;
+      newWords?: unknown;
+    };
+
+    return {
+      assistantText: assistantText.replace(learningNotesPattern, "").trim(),
+      corrections: Array.isArray(parsed.corrections)
+        ? parsed.corrections.filter((item): item is string => typeof item === "string")
+        : [],
+      newWords: Array.isArray(parsed.newWords)
+        ? parsed.newWords.filter((item): item is string => typeof item === "string")
+        : []
+    };
+  } catch {
+    return {
+      assistantText,
+      corrections: [],
+      newWords: []
+    };
+  }
+}
 
 function decryptStoredMessage(message: Message, encryptionSecret: string) {
   if (!message.contentIv || !message.contentAuthTag) {
@@ -147,6 +194,13 @@ export async function* streamChatMessage(
     }
   }
 
+  if (corrections.length === 0 && newWords.length === 0) {
+    const parsedNotes = parseStructuredLearningNotes(assistantText);
+    assistantText = parsedNotes.assistantText;
+    corrections = parsedNotes.corrections;
+    newWords = parsedNotes.newWords;
+  }
+
   const encryptedAssistantMessage = encryptMessageContent(assistantText, input.encryptionSecret);
 
   await db.message.create({
@@ -163,6 +217,7 @@ export async function* streamChatMessage(
 
   yield {
     type: "done",
+    assistantText,
     sessionId: session.id,
     corrections,
     newWords
@@ -180,6 +235,7 @@ export async function sendChatMessage(db: ChatDb, input: SendChatMessageInput) {
       assistantText += event.text;
     } else {
       sessionId = event.sessionId;
+      assistantText = event.assistantText;
       corrections = event.corrections;
       newWords = event.newWords;
     }

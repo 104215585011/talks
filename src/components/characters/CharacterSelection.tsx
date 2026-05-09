@@ -42,8 +42,9 @@ export function CharacterSelection({ characters }: CharacterSelectionProps) {
       "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0)";
   }
 
-  function startChat() {
-    window.localStorage.setItem("linguaai.characterId", selectedId);
+  function startChat(characterId: string) {
+    setSelectedId(characterId);
+    window.localStorage.setItem("linguaai.characterId", characterId);
     router.push("/chat");
   }
 
@@ -93,16 +94,11 @@ export function CharacterSelection({ characters }: CharacterSelectionProps) {
               <Button
                 onClick={(event) => {
                   event.stopPropagation();
-
-                  if (selected) {
-                    startChat();
-                  } else {
-                    setSelectedId(character.id);
-                  }
+                  startChat(character.id);
                 }}
-                variant={selected ? "primary" : "secondary"}
+                variant="primary"
               >
-                {previewingId === character.id ? "Previewing" : selected ? "Start chat" : "Select"}
+                {previewingId === character.id ? "Previewing" : "Start chat"}
               </Button>
             </div>
           </motion.article>

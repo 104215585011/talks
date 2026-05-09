@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Languages, Menu, Mic, Send, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
@@ -47,9 +47,12 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   const [sessions, setSessions] = useState<Record<string, CharacterSession>>({});
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const recordedChunksRef = useRef<BlobPart[]>([]);
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const recordingTimerRef = useRef<number | null>(null);
+  const shouldFollowScrollRef = useRef(true);
 
   useEffect(() => {
     const session = readAuthSession();
@@ -72,6 +75,15 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   const currentSession = sessions[selectedCharacterId] ?? EMPTY_CHARACTER_SESSION;
   const learningFeedback = currentSession.learningFeedback;
   const messages = currentSession.messages;
+
+  useEffect(() => {
+    if (
+      shouldFollowScrollRef.current &&
+      typeof messagesEndRef.current?.scrollIntoView === "function"
+    ) {
+      messagesEndRef.current.scrollIntoView({ block: "end" });
+    }
+  }, [isStreaming, messages, selectedCharacterId]);
 
   function updateCharacterSession(
     characterId: string,
@@ -117,6 +129,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
         messages: [...session.messages, userMessage, assistantMessage]
       };
     });
+    shouldFollowScrollRef.current = true;
     setIsStreaming(true);
 
     try {
@@ -178,6 +191,10 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
               "sessionId" in donePayload && typeof donePayload.sessionId === "string"
                 ? donePayload.sessionId
                 : undefined;
+            const assistantText =
+              "assistantText" in donePayload && typeof donePayload.assistantText === "string"
+                ? donePayload.assistantText
+                : undefined;
 
             updateCharacterSession(characterId, (session) => ({
               ...session,
@@ -188,6 +205,13 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
                   newWords: toStringArray(donePayload, "newWords")
                 }
               },
+              messages: assistantText
+                ? session.messages.map((message) =>
+                    message.id === assistantMessage.id
+                      ? { ...message, content: assistantText }
+                      : message
+                  )
+                : session.messages,
               sessionId: nextSessionId ?? session.sessionId
             }));
           }
@@ -212,9 +236,34 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    await submitCurrentInput();
+  }
+
+  async function submitCurrentInput() {
     const text = input;
     setInput("");
     await sendMessage(text);
+  }
+
+  function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+
+      if (!isStreaming && input.trim()) {
+        void submitCurrentInput();
+      }
+    }
+  }
+
+  function handleMessagesScroll() {
+    const element = messagesScrollRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    shouldFollowScrollRef.current =
+      element.scrollHeight - element.scrollTop - element.clientHeight < 96;
   }
 
   async function playAssistantAudio(message: ChatMessage) {
@@ -409,7 +458,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   );
 
   return (
-    <div className="relative z-10 mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl grid-cols-1 gap-5 lg:grid-cols-[18rem_1fr]">
+    <div className="grid min-h-[calc(100vh-8rem)] grid-cols-1 gap-5 lg:grid-cols-[18rem_1fr]">
       <aside className="glass-panel hidden rounded-lg p-4 lg:block">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">Mentor</p>
         {mentorList}
@@ -469,37 +518,32 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button
-              aria-label="Hold to record voice input"
+            <TooltipIconButton
+              ariaLabel="Hold to record voice input"
               icon={<Mic size={17} />}
+              label="Voice input"
               onPointerDown={startVoiceInput}
               onPointerLeave={stopVoiceInput}
               onPointerUp={stopVoiceInput}
-              size="icon"
-              variant="ghost"
-            >
-              Voice input
-            </Button>
-            <Button
-              aria-label="Translate message"
+            />
+            <TooltipIconButton
+              ariaLabel="Translate message"
               icon={<Languages size={17} />}
-              size="icon"
-              variant="ghost"
-            >
-              Translate message
-            </Button>
-            <Button
-              aria-label="Vocabulary tools"
+              label="Translate"
+            />
+            <TooltipIconButton
+              ariaLabel="Vocabulary tools"
               icon={<Sparkles size={17} />}
-              size="icon"
-              variant="ghost"
-            >
-              Vocabulary tools
-            </Button>
+              label="Vocabulary"
+            />
           </div>
         </header>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-6">
+        <div
+          className="flex-1 space-y-5 overflow-y-auto px-5 py-6"
+          onScroll={handleMessagesScroll}
+          ref={messagesScrollRef}
+        >
           {messages.length === 0 ? (
             <div className="mx-auto flex h-full max-w-2xl flex-col justify-center text-center">
               <p className="font-display text-3xl font-semibold text-white">
@@ -528,6 +572,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
               </div>
             ))
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         <form className="border-t border-white/10 p-4" onSubmit={handleSubmit}>
@@ -536,6 +581,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
               className="min-h-12 flex-1 resize-none rounded-control border border-white/[0.15] bg-white/[0.08] px-4 py-3 text-sm text-white placeholder:text-slate-500 transition focus:focus-ring focus:ring-1 focus:ring-brand-accent"
               disabled={isStreaming}
               onChange={(event) => setInput(event.target.value)}
+              onKeyDown={handleComposerKeyDown}
               placeholder={`Message ${selectedCharacter.name}`}
               value={input}
             />
@@ -565,9 +611,48 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
               {recognitionError ? recognitionError : null}
             </p>
           ) : null}
+          <p className="mt-2 text-right text-xs text-slate-500">Enter 发送 · Shift+Enter 换行</p>
         </form>
       </section>
     </div>
+  );
+}
+
+type TooltipIconButtonProps = {
+  ariaLabel: string;
+  icon: ReactNode;
+  label: string;
+  onPointerDown?: () => void;
+  onPointerLeave?: () => void;
+  onPointerUp?: () => void;
+};
+
+function TooltipIconButton({
+  ariaLabel,
+  icon,
+  label,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp
+}: TooltipIconButtonProps) {
+  return (
+    <span className="group relative inline-flex">
+      <Button
+        aria-label={ariaLabel}
+        icon={icon}
+        onPointerDown={onPointerDown}
+        onPointerLeave={onPointerLeave}
+        onPointerUp={onPointerUp}
+        size="icon"
+        title={label}
+        variant="ghost"
+      >
+        {label}
+      </Button>
+      <span className="pointer-events-none absolute right-0 top-12 z-20 whitespace-nowrap rounded-control border border-white/[0.12] bg-[#0A0E1A]/95 px-2 py-1 text-xs text-slate-100 opacity-0 shadow-glow-cyan transition group-hover:opacity-100 group-focus-within:opacity-100">
+        {label}
+      </span>
+    </span>
   );
 }
 

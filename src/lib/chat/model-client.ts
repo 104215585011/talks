@@ -34,6 +34,9 @@ type ModelClientOptions = {
 
 const DEFAULT_MODEL_API_BASE_URL = "https://v2.aicodee.com";
 const DEFAULT_MODEL_NAME = "MiniMax-M2.7-highspeed";
+const STRUCTURED_LEARNING_NOTES_INSTRUCTION = `At the very end of every reply, append exactly one machine-readable block in this format:
+<learning_notes>{"corrections":["short correction when useful"],"newWords":["useful word or phrase"]}</learning_notes>
+Use empty arrays only when there is genuinely no useful correction or vocabulary note. Do not wrap the block in Markdown.`;
 
 function isConfiguredApiKey(apiKey: string | undefined) {
   return Boolean(apiKey && !apiKey.includes("replace-with") && !apiKey.includes("placeholder"));
@@ -96,7 +99,7 @@ export function createModelClient(
           messages: [
             {
               role: "system",
-              content: `${input.systemPrompt}\n\nAt the end, include concise corrections and new vocabulary in the final structured summary.`
+              content: `${input.systemPrompt}\n\n${STRUCTURED_LEARNING_NOTES_INSTRUCTION}`
             },
             ...input.messages
           ]

@@ -8,7 +8,12 @@ export default function RegisterPage() {
       <LazyStarfield density={400} />
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-between gap-10">
         <section className="hidden max-w-xl lg:block">
-          <p className="font-mono text-sm uppercase tracking-[0.2em] text-brand-purple">LinguaAI</p>
+          <Link
+            className="font-mono text-sm uppercase tracking-[0.2em] text-brand-purple transition hover:text-white"
+            href="/"
+          >
+            LinguaAI
+          </Link>
           <h2 className="mt-5 font-display text-6xl font-semibold leading-tight text-white">
             Choose a voice. Build fluency in motion.
           </h2>

@@ -67,6 +67,7 @@ export async function POST(request: Request) {
             } else {
               controller.enqueue(
                 encodeSse("done", {
+                  assistantText: event.assistantText,
                   sessionId: event.sessionId,
                   corrections: event.corrections,
                   newWords: event.newWords

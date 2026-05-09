@@ -135,4 +135,26 @@ describe("model client", () => {
 
     expect(body.model).toBe("MiniMax-M2.7-highspeed");
   });
+
+  test("asks configured models to emit parseable learning notes", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      body: new ReadableStream({
+        start(controller) {
+          controller.close();
+        }
+      })
+    });
+
+    await collectStream(createModelClient("test-api-key"));
+
+    const [, requestInit] = (global.fetch as jest.Mock).mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(requestInit.body as string) as {
+      messages: Array<{ content: string; role: string }>;
+    };
+
+    expect(body.messages[0].content).toContain("<learning_notes>");
+    expect(body.messages[0].content).toContain("corrections");
+    expect(body.messages[0].content).toContain("newWords");
+  });
 });

@@ -26,7 +26,18 @@ jest.mock("@/lib/speech/browser-audio", () => ({
 }));
 
 jest.mock("./MessageBubble", () => ({
-  MessageBubble: ({ message }: { message: { content: string } }) => <div>{message.content}</div>
+  MessageBubble: ({
+    isStreaming,
+    message
+  }: {
+    isStreaming?: boolean;
+    message: { content: string; role: string };
+  }) =>
+    isStreaming && message.role === "assistant" && !message.content ? (
+      <div aria-label="AI is typing" />
+    ) : (
+      <div>{message.content}</div>
+    )
 }));
 
 const characters: LinguaCharacter[] = [
@@ -154,5 +165,59 @@ describe("ChatWorkspace mobile mentor drawer", () => {
     expect(screen.getByText("Emma correction")).toBeInTheDocument();
     expect(screen.queryByText("Hello Jake")).not.toBeInTheDocument();
     expect(screen.queryByText("Jake reply")).not.toBeInTheDocument();
+  });
+
+  it("renders a typing indicator before the first streamed delta arrives", async () => {
+    Object.assign(global, { TextDecoder, TextEncoder });
+    let uuid = 0;
+    let releaseStream: (() => void) | undefined;
+    Object.defineProperty(global, "crypto", {
+      configurable: true,
+      value: {
+        randomUUID: () => `typing-message-${++uuid}`
+      }
+    });
+    global.fetch = jest.fn(async () => {
+      const encoder = new TextEncoder();
+      let hasRead = false;
+
+      return {
+        body: {
+          getReader: () => ({
+            read: async () => {
+              if (hasRead) {
+                return { done: true, value: undefined };
+              }
+
+              await new Promise<void>((resolve) => {
+                releaseStream = resolve;
+              });
+              hasRead = true;
+              return {
+                done: false,
+                value: encoder.encode('event: delta\ndata: {"text":"Delayed reply"}\n\n')
+              };
+            }
+          })
+        },
+        ok: true
+      } as Response;
+    }) as jest.Mock;
+
+    render(<ChatWorkspace characters={characters} />);
+
+    await waitFor(() => expect(screen.getAllByText("Emma Clarke").length).toBeGreaterThan(0));
+
+    fireEvent.change(screen.getByPlaceholderText("Message Emma Clarke"), {
+      target: { value: "Hello" }
+    });
+    fireEvent.submit(screen.getByPlaceholderText("Message Emma Clarke").closest("form")!);
+
+    expect(await screen.findByLabelText("AI is typing")).toBeInTheDocument();
+
+    releaseStream?.();
+
+    expect(await screen.findByText("Delayed reply")).toBeInTheDocument();
+    expect(screen.queryByLabelText("AI is typing")).not.toBeInTheDocument();
   });
 });
