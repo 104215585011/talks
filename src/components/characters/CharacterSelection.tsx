@@ -27,19 +27,32 @@ export function CharacterSelection({ characters }: CharacterSelectionProps) {
   const router = useRouter();
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState(characters[0]?.id ?? "");
+  const [tiltByCharacter, setTiltByCharacter] = useState<Record<string, { x: number; y: number }>>(
+    {}
+  );
 
-  function handlePointerMove(event: MouseEvent<HTMLElement>) {
-    const card = event.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 10;
-    const rotateX = ((event.clientY - rect.top) / rect.height - 0.5) * -10;
+  function handlePointerMove(characterId: string, event: MouseEvent<HTMLElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 8;
+    const rotateX = ((event.clientY - rect.top) / rect.height - 0.5) * -8;
 
-    card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+    setTiltByCharacter((current) => ({
+      ...current,
+      [characterId]: {
+        x: rotateX,
+        y: rotateY
+      }
+    }));
   }
 
-  function resetTilt(event: MouseEvent<HTMLElement>) {
-    event.currentTarget.style.transform =
-      "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0)";
+  function resetTilt(characterId: string) {
+    setTiltByCharacter((current) => ({
+      ...current,
+      [characterId]: {
+        x: 0,
+        y: 0
+      }
+    }));
   }
 
   function startChat(characterId: string) {
@@ -53,20 +66,28 @@ export function CharacterSelection({ characters }: CharacterSelectionProps) {
       {characters.map((character, index) => {
         const theme = themeByCharacter[character.id] ?? themeByCharacter.emma;
         const selected = selectedId === character.id;
+        const tilt = tiltByCharacter[character.id] ?? { x: 0, y: 0 };
 
         return (
           <motion.article
-            animate={{ opacity: 1, y: 0 }}
+            animate={{
+              opacity: 1,
+              rotateX: tilt.x,
+              rotateY: tilt.y,
+              y: selected ? -4 : 0
+            }}
             className={cn(
-              "glass-panel flex min-h-[22rem] xl:min-h-[20rem] flex-col rounded-lg p-5 transition duration-200 will-change-transform",
+              "glass-panel flex min-h-[22rem] xl:min-h-[20rem] flex-col rounded-lg p-5 will-change-transform",
               selected && theme.glow
             )}
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 24, rotateX: 0, rotateY: 0 }}
             key={character.id}
             onClick={() => setSelectedId(character.id)}
-            onMouseLeave={resetTilt}
-            onMouseMove={handlePointerMove}
-            transition={{ delay: index * 0.07, duration: 0.36, ease: "easeOut" }}
+            onMouseLeave={() => resetTilt(character.id)}
+            onMouseMove={(event) => handlePointerMove(character.id, event)}
+            style={{ transformPerspective: 900 }}
+            transition={{ delay: index * 0.1, type: "spring", stiffness: 80, damping: 18 }}
+            whileTap={{ scale: 0.96 }}
           >
             <div className="flex items-start justify-between">
               <Avatar isActive={selected} name={character.name} size="lg" />

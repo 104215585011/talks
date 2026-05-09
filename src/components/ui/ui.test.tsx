@@ -24,6 +24,16 @@ describe("design system primitives", () => {
     expect(button).toHaveClass("disabled:cursor-not-allowed");
   });
 
+  it("adds dimensional hover and press affordance to primary buttons", () => {
+    render(<Button>Ship it</Button>);
+
+    const button = screen.getByRole("button", { name: "Ship it" });
+
+    expect(button).toHaveClass("hover:scale-[1.02]");
+    expect(button).toHaveClass("hover:shadow-[0_8px_32px_rgba(26,115,232,0.4)]");
+    expect(button).toHaveClass("active:scale-[0.96]");
+  });
+
   it("renders icon-only buttons without duplicating the icon", () => {
     render(
       <Button aria-label="Open menu" icon={<span data-testid="menu-icon" />} size="icon">

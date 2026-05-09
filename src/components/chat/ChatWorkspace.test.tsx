@@ -98,6 +98,13 @@ describe("ChatWorkspace mobile mentor drawer", () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
   });
 
+  it("renders a subtle atmospheric background layer behind the chat workspace", async () => {
+    mockEmptyHistory();
+    render(<ChatWorkspace characters={characters} />);
+
+    expect(await screen.findByTestId("chat-atmosphere")).toHaveClass("bg-chat-atmosphere");
+  });
+
   it("keeps messages and learning notes isolated per character while switching mentors", async () => {
     Object.assign(global, { TextDecoder, TextEncoder });
     let uuid = 0;

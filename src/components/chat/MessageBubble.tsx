@@ -36,10 +36,10 @@ export function MessageBubble({
       <div className={cn("max-w-[min(42rem,82vw)]", isUser && "order-first")}>
         <div
           className={cn(
-            "rounded-bubble px-4 py-3 text-sm leading-7",
+            "relative overflow-hidden rounded-bubble px-4 py-3 text-sm leading-7",
             isUser
-              ? "bg-user-message text-white shadow-glow"
-              : "glass-panel border-brand-accent/20 text-slate-100 shadow-glow-cyan"
+              ? "bg-user-message text-white shadow-glow before:absolute before:bottom-0 before:left-0 before:top-0 before:w-1 before:bg-white/55 before:content-['']"
+              : "glass-panel border-l-2 border-l-brand-accent border-brand-accent/20 text-slate-100 shadow-glow-cyan"
           )}
         >
           {showTypingIndicator ? (

@@ -12,11 +12,13 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-brand-primary text-white shadow-glow hover:brightness-110 active:brightness-95",
+  primary:
+    "bg-brand-primary text-white shadow-glow hover:scale-[1.02] hover:bg-[#247df1] hover:shadow-[0_8px_32px_rgba(26,115,232,0.4)] active:scale-[0.96] active:shadow-[inset_0_2px_12px_rgba(0,0,0,0.24)]",
   secondary:
-    "border border-white/[0.15] bg-white/[0.08] text-slate-100 hover:border-brand-accent/50 hover:bg-white/[0.12]",
-  ghost: "text-slate-200 hover:bg-white/10 hover:text-white",
-  danger: "bg-signal-danger text-white hover:brightness-110"
+    "border border-white/[0.15] bg-white/[0.08] text-slate-100 hover:scale-[1.01] hover:border-brand-accent/50 hover:bg-white/[0.12] hover:shadow-[0_8px_28px_rgba(0,229,255,0.12)] active:scale-[0.97]",
+  ghost: "text-slate-200 hover:scale-[1.01] hover:bg-white/10 hover:text-white active:scale-[0.96]",
+  danger:
+    "bg-signal-danger text-white hover:scale-[1.02] hover:shadow-[0_8px_28px_rgba(255,107,122,0.34)] active:scale-[0.96]"
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -41,6 +43,7 @@ export function Button({
     <button
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-control font-semibold transition duration-200 focus-visible:focus-ring disabled:cursor-not-allowed disabled:opacity-60",
+        "ease-[cubic-bezier(0.34,1.56,0.64,1)] will-change-transform",
         variantClasses[variant],
         sizeClasses[size],
         className

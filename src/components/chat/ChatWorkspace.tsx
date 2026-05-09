@@ -1,6 +1,16 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CSSProperties,
+  FormEvent,
+  KeyboardEvent,
+  MouseEvent,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import { Languages, Menu, Mic, Send, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
@@ -74,6 +84,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [selectedCharacterId, setSelectedCharacterId] = useState(characters[0]?.id ?? "emma");
   const [sessions, setSessions] = useState<Record<string, CharacterSession>>({});
+  const [atmosphere, setAtmosphere] = useState({ x: 48, y: 38 });
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -310,6 +321,15 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
 
     shouldFollowScrollRef.current =
       element.scrollHeight - element.scrollTop - element.clientHeight < 96;
+  }
+
+  function handleAtmosphereMove(event: MouseEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+
+    setAtmosphere({
+      x: Math.round(((event.clientX - rect.left) / rect.width) * 100),
+      y: Math.round(((event.clientY - rect.top) / rect.height) * 100)
+    });
   }
 
   async function loadCharacterHistory(characterId: string, page: number) {
@@ -589,7 +609,21 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
   );
 
   return (
-    <div className="grid min-h-[calc(100vh-8rem)] grid-cols-1 gap-5 lg:grid-cols-[18rem_1fr]">
+    <div
+      className="relative grid min-h-[calc(100vh-8rem)] grid-cols-1 gap-5 overflow-hidden rounded-lg lg:grid-cols-[18rem_1fr]"
+      onMouseMove={handleAtmosphereMove}
+    >
+      <div
+        aria-hidden="true"
+        className="bg-chat-atmosphere pointer-events-none absolute inset-0 opacity-60 transition-[background] duration-300"
+        data-testid="chat-atmosphere"
+        style={
+          {
+            "--chat-glow-x": `${atmosphere.x}%`,
+            "--chat-glow-y": `${atmosphere.y}%`
+          } as CSSProperties
+        }
+      />
       <aside className="glass-panel hidden rounded-lg p-4 lg:block">
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">Mentor</p>
         {mentorList}
@@ -628,7 +662,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
         </div>
       ) : null}
 
-      <section className="glass-panel flex min-h-[40rem] flex-col rounded-lg">
+      <section className="glass-panel relative flex min-h-[40rem] flex-col rounded-lg">
         <header className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <Button
