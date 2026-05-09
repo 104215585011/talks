@@ -74,7 +74,7 @@ export function MessageBubble({
           ) : null}
         </div>
         {!isUser ? (
-          <div className="mt-2 flex items-center gap-2">
+          <div className="-mt-1 ml-4 flex w-fit items-center gap-2 rounded-bubble rounded-t-none border border-t-0 border-white/[0.12] bg-white/[0.055] px-3 py-2 shadow-[0_12px_30px_rgba(0,0,0,0.16)] backdrop-blur-md">
             <AudioWaveform isPlaying={isStreaming || isSpeaking} />
             {onSpeak ? (
               <button

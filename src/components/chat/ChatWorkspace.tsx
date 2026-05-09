@@ -18,6 +18,7 @@ import { readAuthSession } from "@/lib/auth/client-session";
 import type { LinguaCharacter } from "@/lib/characters/characters";
 import { parseSseChunk } from "@/lib/chat/sse";
 import { playAudioResponse } from "@/lib/speech/browser-audio";
+import { cn } from "@/lib/utils/cn";
 import { LearningFeedback, type LearningFeedbackData } from "./LearningFeedback";
 import { MessageBubble, type ChatMessage } from "./MessageBubble";
 
@@ -70,6 +71,14 @@ type HistoryResponse = {
   pageSize: number;
   sessions: HistorySession[];
   total: number;
+};
+
+const mentorAccentByCharacter: Record<string, string> = {
+  carlos: "rgba(255, 200, 60, 0.9)",
+  emma: "rgba(0, 229, 255, 0.95)",
+  jake: "rgba(26, 115, 232, 0.95)",
+  kenji: "rgba(69, 245, 165, 0.9)",
+  sophie: "rgba(124, 77, 255, 0.95)"
 };
 
 export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
@@ -590,21 +599,33 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
 
   const mentorList = (
     <div className="mt-4 space-y-2">
-      {characters.map((character) => (
-        <button
-          className={`w-full rounded-control px-3 py-3 text-left text-sm transition hover:bg-white/10 ${
-            selectedCharacterId === character.id
-              ? "bg-white/[0.12] text-white shadow-glow"
-              : "text-slate-300"
-          }`}
-          key={character.id}
-          onClick={() => selectCharacter(character.id)}
-          type="button"
-        >
-          <span className="block font-semibold">{character.name}</span>
-          <span className="block text-xs text-slate-400">{character.language}</span>
-        </button>
-      ))}
+      {characters.map((character) => {
+        const isSelected = selectedCharacterId === character.id;
+
+        return (
+          <button
+            className={cn(
+              "w-full rounded-control border-l-2 px-3 py-3 text-left text-sm transition hover:bg-white/10",
+              isSelected
+                ? "bg-white/[0.07] text-white shadow-[0_12px_34px_rgba(0,229,255,0.12)]"
+                : "border-l-transparent text-slate-300"
+            )}
+            key={character.id}
+            onClick={() => selectCharacter(character.id)}
+            style={{
+              borderLeftColor: isSelected
+                ? mentorAccentByCharacter[character.id] ?? "rgba(0, 229, 255, 0.95)"
+                : "transparent"
+            }}
+            type="button"
+          >
+            <span className="block font-semibold">{character.name}</span>
+            <span className={cn("block text-xs", isSelected ? "text-slate-300" : "text-slate-400")}>
+              {character.language}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 
