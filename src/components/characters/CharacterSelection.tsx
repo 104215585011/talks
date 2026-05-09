@@ -16,11 +16,11 @@ const themeByCharacter: Record<
   string,
   { glow: string; tone: "blue" | "cyan" | "purple" | "success" | "warning" }
 > = {
-  carlos: { glow: "shadow-[0_0_34px_rgba(255,209,102,0.3)]", tone: "warning" },
-  emma: { glow: "shadow-glow-cyan", tone: "cyan" },
-  jake: { glow: "shadow-[0_0_34px_rgba(26,115,232,0.4)]", tone: "blue" },
-  kenji: { glow: "shadow-[0_0_34px_rgba(69,245,165,0.28)]", tone: "success" },
-  sophie: { glow: "shadow-glow-purple", tone: "purple" }
+  carlos: { glow: "shadow-[0_0_44px_rgba(255,200,60,0.35)]", tone: "warning" },
+  emma: { glow: "shadow-[0_0_44px_rgba(34,211,238,0.32)]", tone: "cyan" },
+  jake: { glow: "shadow-[0_0_44px_rgba(99,102,241,0.38)]", tone: "blue" },
+  kenji: { glow: "shadow-[0_0_44px_rgba(69,245,165,0.3)]", tone: "success" },
+  sophie: { glow: "shadow-[0_0_44px_rgba(167,139,250,0.35)]", tone: "purple" }
 };
 
 export function CharacterSelection({ characters }: CharacterSelectionProps) {
@@ -77,7 +77,7 @@ export function CharacterSelection({ characters }: CharacterSelectionProps) {
               y: selected ? -4 : 0
             }}
             className={cn(
-              "glass-panel flex min-h-[22rem] xl:min-h-[20rem] flex-col rounded-lg p-5 will-change-transform",
+              "glass-panel flex min-h-[22rem] xl:min-h-[20rem] flex-col rounded-lg border-white/[0.07] bg-[rgba(15,16,28,0.8)] p-5 shadow-[rgba(0,0,0,0.5)_0px_36px_72px_-18px,rgba(0,0,0,0.28)_0px_10px_24px_-8px,rgba(255,255,255,0.06)_0px_0px_0px_1px_inset] will-change-transform hover:shadow-[rgba(0,0,0,0.65)_0px_48px_80px_-20px,rgba(0,0,0,0.35)_0px_14px_30px_-8px,rgba(255,255,255,0.09)_0px_0px_0px_1px_inset]",
               selected && theme.glow
             )}
             initial={{ opacity: 0, y: 24, rotateX: 0, rotateY: 0 }}
@@ -86,7 +86,7 @@ export function CharacterSelection({ characters }: CharacterSelectionProps) {
             onMouseLeave={() => resetTilt(character.id)}
             onMouseMove={(event) => handlePointerMove(character.id, event)}
             style={{ transformPerspective: 900 }}
-            transition={{ delay: index * 0.1, type: "spring", stiffness: 80, damping: 18 }}
+            transition={{ delay: index * 0.08, type: "spring", stiffness: 120, damping: 18 }}
             whileTap={{ scale: 0.96 }}
           >
             <div className="flex items-start justify-between">

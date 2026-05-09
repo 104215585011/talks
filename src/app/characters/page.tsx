@@ -1,6 +1,6 @@
 import { CharacterSelection } from "@/components/characters/CharacterSelection";
-import { LazyStarfield } from "@/components/effects/LazyStarfield";
 import { AppNav } from "@/components/navigation/AppNav";
+import { FluidBackground } from "@/components/ui";
 import { listCharacters } from "@/lib/characters/characters";
 
 export default function CharactersPage() {
@@ -8,7 +8,13 @@ export default function CharactersPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden px-6 py-8">
-      <LazyStarfield density={650} />
+      <FluidBackground
+        orbs={[
+          { color: "blue", intensity: 0.65 },
+          { color: "purple", intensity: 0.55 },
+          { color: "cyan", intensity: 0.4 }
+        ]}
+      />
       <section className="relative z-10 mx-auto max-w-7xl space-y-8">
         <AppNav />
         <div className="mb-8 max-w-3xl">
