@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, Button, Input } from "@/components/ui";
+import { Button, Input } from "@/components/ui";
 import { saveAuthSession } from "@/lib/auth/client-session";
 
 type AuthMode = "login" | "register";
@@ -87,9 +87,9 @@ export function AuthForm({ mode }: AuthFormProps) {
   return (
     <form className="glass-panel w-full max-w-md rounded-lg p-6" onSubmit={handleSubmit}>
       <div className="mb-6">
-        <Badge tone={isRegister ? "purple" : "cyan"}>
+        <span className="inline-flex rounded-full border border-white/20 bg-transparent px-3 py-1 text-xs font-medium text-slate-300">
           {isRegister ? "Create account" : "Sign in"}
-        </Badge>
+        </span>
         <h1 className="mt-5 font-display text-3xl font-semibold text-white">
           {isRegister ? "Start your language cockpit" : "Sign in to LinguaAI"}
         </h1>

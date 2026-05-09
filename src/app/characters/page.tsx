@@ -10,9 +10,9 @@ export default function CharactersPage() {
     <main className="relative min-h-screen overflow-hidden px-6 py-8">
       <FluidBackground
         orbs={[
-          { color: "blue", intensity: 0.65 },
-          { color: "purple", intensity: 0.55 },
-          { color: "cyan", intensity: 0.4 }
+          { color: "blue", intensity: 0.78 },
+          { color: "purple", intensity: 0.68 },
+          { color: "cyan", intensity: 0.5 }
         ]}
       />
       <section className="relative z-10 mx-auto max-w-7xl space-y-8">

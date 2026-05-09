@@ -70,7 +70,7 @@ export function FluidBackground({
     <div
       aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden bg-[radial-gradient(rgb(14,15,26)_0%,rgb(8,9,16)_65%,rgb(5,5,11)_100%)]",
+        "pointer-events-none fixed inset-0 overflow-hidden bg-[radial-gradient(rgb(14,15,26)_0%,rgb(8,9,16)_65%,rgb(5,5,11)_100%)]",
         className
       )}
       data-testid="fluid-background"
@@ -81,7 +81,7 @@ export function FluidBackground({
         return (
           <div
             className={cn(
-              "absolute left-1/2 top-1/2 rounded-full mix-blend-screen saturate-[1.15] will-change-transform",
+              "absolute left-1/2 top-1/2 rounded-full mix-blend-screen saturate-[1.18] will-change-transform",
               style.animationClass,
               style.className
             )}

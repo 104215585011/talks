@@ -18,6 +18,7 @@ describe("FluidBackground", () => {
     );
 
     expect(screen.getByTestId("fluid-background")).toBeInTheDocument();
+    expect(screen.getByTestId("fluid-background")).toHaveClass("fixed");
     expect(screen.getByTestId("fluid-orb-blue")).toHaveStyle({ opacity: "0.65" });
     expect(screen.getByTestId("fluid-orb-purple")).toHaveStyle({ opacity: "0.55" });
     expect(screen.getByTestId("fluid-orb-cyan")).toHaveStyle({ opacity: "0.4" });
