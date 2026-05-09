@@ -455,6 +455,9 @@ describe("ChatWorkspace mobile mentor drawer", () => {
     });
 
     expect(await screen.findByRole("button", { name: "Jump to latest message" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Jump to latest message" })).toHaveTextContent(
+      "↓ 新消息"
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Jump to latest message" }));
 

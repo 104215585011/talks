@@ -832,7 +832,7 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
             onClick={handleJumpToLatest}
             type="button"
           >
-            ↓ New messages
+            ↓ 新消息
           </button>
         ) : null}
 
