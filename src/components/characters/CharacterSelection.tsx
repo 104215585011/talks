@@ -48,7 +48,7 @@ export function CharacterSelection({ characters }: CharacterSelectionProps) {
   }
 
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {characters.map((character, index) => {
         const theme = themeByCharacter[character.id] ?? themeByCharacter.emma;
         const selected = selectedId === character.id;
@@ -57,7 +57,7 @@ export function CharacterSelection({ characters }: CharacterSelectionProps) {
           <motion.article
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "glass-panel flex min-h-[22rem] flex-col rounded-lg p-5 transition duration-200 will-change-transform",
+              "glass-panel flex min-h-[22rem] xl:min-h-[20rem] flex-col rounded-lg p-5 transition duration-200 will-change-transform",
               selected && theme.glow
             )}
             initial={{ opacity: 0, y: 18 }}
