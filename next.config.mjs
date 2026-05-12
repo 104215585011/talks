@@ -35,6 +35,13 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@node-rs/bcrypt"]
   },
+  webpack(config, { dev, isServer }) {
+    if (dev && isServer) {
+      config.output.chunkFilename = "[name].js";
+    }
+
+    return config;
+  },
   reactStrictMode: true
 };
 

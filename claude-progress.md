@@ -8,7 +8,7 @@
 - **标准验证路径**：`npm test -- --runInBand`（27 suites, 83 tests passing，2026-05-12 已验证）
 - **Lint / Build**：`npm run lint` ✅，`npm run build` ✅（2026-05-12 已验证）
 - **E2E**：`npm run test:e2e`（历史记录：7 Playwright tests passing；本轮未重跑）
-- **当前最高优先级未完成功能**：PF-01（AudioWaveform rAF 泄漏修复）、PF-02（聊天区鼠标移动避免重渲染）、PF-03（SSE 批量 setState）
+- **当前最高优先级未完成功能**：PF-02（聊天区鼠标移动避免重渲染）、PF-03（SSE 批量 setState）
 - **当前 blocker**：无
 
 ---
@@ -44,6 +44,7 @@
 - TICKET-711：聊天固定窗口 + 滚动锚定 ✅
 - 自定义滚动条样式（globals.css）✅
 - FluidBackground 性能优化（blur 130px→72px）✅
+- PF-01：AudioWaveform rAF 泄漏修复 ✅
 
 ---
 
@@ -127,3 +128,19 @@
   - `npm test -- --runInBand` passed: 29 suites / 85 tests.
   - `npm run build` passed.
 - **Next best action**: PF-01 AudioWaveform rAF leak fix, then PF-02 chat mouse-move render optimization.
+
+### 2026-05-12 · PF-01 + Report QA Retest
+- **Goal**: Fix the first performance ticket and unblock Codex2's `/report` QA retest.
+- **Completed**:
+  - `AudioWaveform` now draws one static center line when `isPlaying=false` and does not start a `requestAnimationFrame` loop.
+  - Added `src/components/chat/AudioWaveform.test.tsx` for idle and playing waveform behavior.
+  - Fixed Next dev server chunk loading on Windows by aligning dev server chunk output with the runtime expectation in `next.config.mjs`.
+  - Codex2 had reproduced `/report` as a P0 runtime blocker (`Cannot find module './948.js'`). After the fix, `/report` returns 200 and browser verification sees the report page without Server Error or stuck Loading.
+- **Verification**:
+  - `npm test -- src/components/chat/AudioWaveform.test.tsx --runInBand` passed.
+  - `npx tsc --noEmit --incremental false` passed.
+  - `npm run lint` passed.
+  - `npm test -- --runInBand` passed: 30 suites / 87 tests.
+  - `npm run build` passed after clearing stale `.next`.
+  - Local dev Playwright probe for `/report` returned status 200, `Learning report` text present, no Server Error, no stuck Loading.
+- **Next best action**: PF-02 chat mouse-move render optimization.

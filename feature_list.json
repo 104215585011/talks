@@ -157,19 +157,62 @@
       "notes": "P0 /report???????Chart.js no longer lives in the initial LearningReport module; it loads through src/components/report/ReportCharts.tsx with next/dynamic ssr:false. Next open ticket: s7-706."
     },
     {
+      "id": "pf-01",
+      "priority": 1,
+      "area": "performance",
+      "title": "AudioWaveform rAF 泄漏修复",
+      "user_visible_behavior": "聊天页消息多时不再持续掉帧",
+      "status": "passing",
+      "verification": [
+        "Chrome DevTools Performance 面板：静止状态下无持续 Canvas 绘制",
+        "播放时波形动画正常"
+      ],
+      "evidence": "2026-05-12 Codex1 fixed AudioWaveform idle rendering so isPlaying=false draws one static center line and does not start requestAnimationFrame. Added src/components/chat/AudioWaveform.test.tsx covering idle and playing states. Verified npm test -- src/components/chat/AudioWaveform.test.tsx --runInBand, npx tsc --noEmit --incremental false, npm run lint, npm test -- --runInBand (30 suites / 87 tests), and npm run build after clearing .next.",
+      "notes": "PF01 complete. Next performance ticket: PF02 mouse move should update CSS/DOM refs without ChatWorkspace re-render."
+    },
+    {
+      "id": "pf-02",
+      "priority": 1,
+      "area": "performance",
+      "title": "鼠标移动不再触发 ChatWorkspace 重渲",
+      "user_visible_behavior": "鼠标在聊天区移动时界面流畅无卡顿",
+      "status": "not_started",
+      "verification": [
+        "React DevTools Profiler：鼠标移动时 ChatWorkspace 无 re-render",
+        "atmosphere 光晕效果视觉不变",
+        "角色选择页 3D tilt 效果视觉不变"
+      ],
+      "evidence": "",
+      "notes": "参考 docs/perf-sprint-tickets.md TICKET-PF02"
+    },
+    {
+      "id": "pf-03",
+      "priority": 2,
+      "area": "performance",
+      "title": "SSE 流式回复批量 setState",
+      "user_visible_behavior": "AI 流式回复时不卡顿",
+      "status": "not_started",
+      "verification": [
+        "流式回复视觉上仍实时显示",
+        "DevTools 中 setState 频率降低到约 60fps"
+      ],
+      "evidence": "",
+      "notes": "参考 docs/perf-sprint-tickets.md TICKET-PF03"
+    },
+    {
       "id": "s7-706",
       "priority": 2,
       "area": "ui",
       "title": "全局按钮微交互",
       "user_visible_behavior": "所有按钮 hover 时 scale(1.04)，点击时 scale(0.96)",
-      "status": "not_started",
+      "status": "passing",
       "verification": [
-        "hover Primary 按钮，有轻微放大",
-        "点击按钮，有轻微缩小",
-        "disabled 按钮无动画"
+        "Primary buttons expose hover:scale-[1.04] and active:scale-[0.96] through the shared Button primitive.",
+        "Icon buttons expose hover:scale-[1.08] and active:scale-[0.92] through the shared Button primitive.",
+        "Disabled or loading buttons do not receive motion classes."
       ],
-      "evidence": "",
-      "notes": "参考 sprint-7-tickets.md TICKET-706，在 Button.tsx 组件层统一"
+      "evidence": "2026-05-12 Codex1 completed TICKET-706 in src/components/ui/Button.tsx and locked the behavior in src/components/ui/ui.test.tsx. Verified with npm test -- src/components/ui/ui.test.tsx --runInBand, npx tsc --noEmit --incremental false, npm run lint, npm test -- --runInBand (29 suites / 85 tests), and npm run build.",
+      "notes": "Shared motion now lives in the Button primitive: regular buttons use hover scale 1.04 / active scale 0.96, icon buttons use hover scale 1.08 / active scale 0.92, and disabled/loading states stay static."
     },
     {
       "id": "s7-710",

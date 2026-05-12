@@ -24,25 +24,35 @@ export function AudioWaveform({ className, isPlaying = false }: AudioWaveformPro
       return undefined;
     }
 
+    const width = canvas.width;
+    const height = canvas.height;
+
+    if (!isPlaying) {
+      context.clearRect(0, 0, width, height);
+      context.strokeStyle = "rgba(148, 163, 184, 0.45)";
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(0, height / 2);
+      context.lineTo(width, height / 2);
+      context.stroke();
+
+      return undefined;
+    }
+
     let frame = 0;
     let animationFrame = 0;
-
     function draw() {
       if (!context || !canvas) {
         return;
       }
 
-      const width = canvas.width;
-      const height = canvas.height;
       context.clearRect(0, 0, width, height);
-      context.strokeStyle = isPlaying ? "rgba(0, 229, 255, 0.9)" : "rgba(148, 163, 184, 0.45)";
+      context.strokeStyle = "rgba(0, 229, 255, 0.9)";
       context.lineWidth = 2;
       context.beginPath();
 
       for (let x = 0; x < width; x += 4) {
-        const amplitude = isPlaying
-          ? Math.sin((x + frame) * 0.08) * 12 + Math.sin((x + frame) * 0.17) * 6
-          : 0;
+        const amplitude = Math.sin((x + frame) * 0.08) * 12 + Math.sin((x + frame) * 0.17) * 6;
         const y = height / 2 + amplitude;
 
         if (x === 0) {
