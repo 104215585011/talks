@@ -8,7 +8,7 @@
 - **标准验证路径**：`npm test -- --runInBand`（27 suites, 83 tests passing，2026-05-12 已验证）
 - **Lint / Build**：`npm run lint` ✅，`npm run build` ✅（2026-05-12 已验证）
 - **E2E**：`npm run test:e2e`（历史记录：7 Playwright tests passing；本轮未重跑）
-- **当前最高优先级未完成功能**：TICKET-705（报告页数据卡片）、TICKET-706（全局按钮微交互）
+- **当前最高优先级未完成功能**：PF-01（AudioWaveform rAF 泄漏修复）、PF-02（聊天区鼠标移动避免重渲染）、PF-03（SSE 批量 setState）
 - **当前 blocker**：无
 
 ---
@@ -38,8 +38,8 @@
 - TICKET-702：登录/注册页深色毛玻璃 ✅
 - TICKET-703：角色选择页视觉升级 ✅
 - TICKET-704：聊天页视觉升级（气泡+背景）✅
-- TICKET-705：报告页数据卡片 ⬜ not_started
-- TICKET-706：全局按钮微交互 ⬜ not_started
+- TICKET-705：报告页数据卡片 ✅
+- TICKET-706：全局按钮微交互 ✅
 - TICKET-710：AI 消息长文折叠（Show more）✅
 - TICKET-711：聊天固定窗口 + 滚动锚定 ✅
 - 自定义滚动条样式（globals.css）✅
@@ -111,3 +111,19 @@
   - `npm test -- --runInBand` passed: 29 suites / 85 tests.
   - `npm run build` passed; `/report` initial route size is 8.86 kB.
 - **Next best action**: TICKET-706 global button micro-interaction.
+
+### 2026-05-12 · TICKET-706
+- **Goal**: Standardize button micro-interactions in the shared `Button` primitive.
+- **Completed**:
+  - Moved scale feedback into `src/components/ui/Button.tsx` so motion is controlled centrally instead of per-callsite.
+  - Regular buttons now use `hover:scale-[1.04]` + `active:scale-[0.96]`.
+  - Icon buttons now use `hover:scale-[1.08]` + `active:scale-[0.92]`.
+  - Disabled and loading states stay static and do not receive motion classes.
+  - Added assertions in `src/components/ui/ui.test.tsx` to lock these rules.
+- **Verification**:
+  - `npm test -- src/components/ui/ui.test.tsx --runInBand` passed.
+  - `npx tsc --noEmit --incremental false` passed.
+  - `npm run lint` passed.
+  - `npm test -- --runInBand` passed: 29 suites / 85 tests.
+  - `npm run build` passed.
+- **Next best action**: PF-01 AudioWaveform rAF leak fix, then PF-02 chat mouse-move render optimization.

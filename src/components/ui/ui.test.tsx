@@ -22,6 +22,8 @@ describe("design system primitives", () => {
     expect(button).toBeDisabled();
     expect(button).toHaveClass("border-white/[0.15]");
     expect(button).toHaveClass("disabled:cursor-not-allowed");
+    expect(button).not.toHaveClass("hover:scale-[1.01]");
+    expect(button).not.toHaveClass("active:scale-[0.97]");
   });
 
   it("adds dimensional hover and press affordance to primary buttons", () => {
@@ -29,19 +31,23 @@ describe("design system primitives", () => {
 
     const button = screen.getByRole("button", { name: "Ship it" });
 
-    expect(button).toHaveClass("hover:scale-[1.02]");
+    expect(button).toHaveClass("hover:scale-[1.04]");
     expect(button).toHaveClass("hover:shadow-[0_8px_32px_rgba(26,115,232,0.4)]");
     expect(button).toHaveClass("active:scale-[0.96]");
   });
 
-  it("renders icon-only buttons without duplicating the icon", () => {
+  it("renders icon-only buttons with stronger hover and tap feedback", () => {
     render(
       <Button aria-label="Open menu" icon={<span data-testid="menu-icon" />} size="icon">
         Open menu
       </Button>
     );
 
-    expect(screen.getByRole("button", { name: "Open menu" })).toBeInTheDocument();
+    const button = screen.getByRole("button", { name: "Open menu" });
+
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveClass("hover:scale-[1.08]");
+    expect(button).toHaveClass("active:scale-[0.92]");
     expect(screen.getAllByTestId("menu-icon")).toHaveLength(1);
   });
 
