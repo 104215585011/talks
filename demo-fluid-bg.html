@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LinguaAI · Fluid Background Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: rgb(10, 11, 18);
+    color: #fff;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── 舞台 ── */
+  .stage {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(rgb(14, 15, 26) 0%, rgb(8, 9, 16) 65%, rgb(5, 5, 11) 100%);
+  }
+
+  /* ── 流体光晕 ── */
+  .fluid {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(130px) saturate(1.15);
+    opacity: 0.65;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .fluid.blue {
+    width: 65vmin; height: 65vmin;
+    left: 50%; top: 50%;
+    margin-left: -32.5vmin; margin-top: -32.5vmin;
+    background: radial-gradient(circle at 40% 40%,
+      oklch(0.60 0.18 256) 0%,
+      oklch(0.45 0.18 260) 40%,
+      oklch(0.28 0.12 262 / 0) 72%);
+    animation: 28s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite flow-blue;
+  }
+  .fluid.purple {
+    width: 58vmin; height: 58vmin;
+    left: 50%; top: 50%;
+    margin-left: -29vmin; margin-top: -29vmin;
+    background: radial-gradient(circle,
+      oklch(0.55 0.22 300) 0%,
+      oklch(0.40 0.20 308) 42%,
+      oklch(0.26 0.14 312 / 0) 72%);
+    animation: 38s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite flow-purple;
+  }
+  .fluid.cyan {
+    width: 38vmin; height: 38vmin;
+    left: 50%; top: 50%;
+    margin-left: -19vmin; margin-top: -19vmin;
+    opacity: 0.45;
+    filter: blur(100px) saturate(1.2);
+    background: radial-gradient(circle,
+      oklch(0.72 0.18 195) 0%,
+      oklch(0.52 0.18 200) 45%,
+      oklch(0.30 0.12 205 / 0) 72%);
+    animation: 44s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite flow-cyan;
+  }
+
+  /* ── 噪声纹理 ── */
+  .bg-noise {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.055;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* ── 径向暗角 ── */
+  .bg-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(at 50% 50%, transparent 0%, rgba(0,0,0,0.18) 80%, rgba(0,0,0,0.40) 100%);
+  }
+
+  /* ── 卡片容器 ── */
+  .cards {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  /* ── 单张角色卡 ── */
+  .card {
+    width: 220px;
+    min-height: 340px;
+    border-radius: 22px;
+    background: rgba(15, 16, 28, 0.80);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow:
+      rgba(0,0,0,0.55) 0px 36px 72px -18px,
+      rgba(0,0,0,0.30) 0px 10px 24px -8px,
+      rgba(255,255,255,0.06) 0px 0px 0px 1px inset;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      rgba(0,0,0,0.65) 0px 48px 80px -20px,
+      rgba(0,0,0,0.35) 0px 14px 30px -8px,
+      rgba(255,255,255,0.09) 0px 0px 0px 1px inset;
+  }
+
+  /* selected 态：带 glow */
+  .card.selected {
+    transform: translateY(-5px);
+    box-shadow:
+      rgba(99, 102, 241, 0.35) 0px 0px 40px -4px,
+      rgba(0,0,0,0.55) 0px 36px 72px -18px,
+      rgba(255,255,255,0.10) 0px 0px 0px 1px inset;
+  }
+  .card.selected-cyan {
+    box-shadow:
+      rgba(34, 211, 238, 0.30) 0px 0px 40px -4px,
+      rgba(0,0,0,0.55) 0px 36px 72px -18px,
+      rgba(255,255,255,0.10) 0px 0px 0px 1px inset;
+    transform: translateY(-5px);
+  }
+  .card.selected-warn {
+    box-shadow:
+      rgba(255, 200, 60, 0.28) 0px 0px 40px -4px,
+      rgba(0,0,0,0.55) 0px 36px 72px -18px,
+      rgba(255,255,255,0.10) 0px 0px 0px 1px inset;
+    transform: translateY(-5px);
+  }
+
+  /* ── 头像 ── */
+  .avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    font-weight: 600;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .avatar.active::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.35);
+    animation: ring-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes ring-pulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50%       { opacity: 0.85; transform: scale(1.06); }
+  }
+
+  .avatar.blue  { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .avatar.cyan  { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+  .avatar.warn  { background: linear-gradient(135deg, #d97706, #f59e0b); }
+
+  /* ── Badge ── */
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+  .badge.purple { background: rgba(139,92,246,0.18); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+  .badge.cyan   { background: rgba(6,182,212,0.15);  color: #67e8f9; border: 1px solid rgba(6,182,212,0.22); }
+  .badge.warn   { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.22); }
+
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+
+  /* ── 文字 ── */
+  .card-body { margin-top: 18px; flex: 1; }
+  .card-name { font-size: 17px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .card-bio  { margin-top: 10px; font-size: 12.5px; line-height: 1.65; color: rgba(255,255,255,0.55); }
+  .card-style { margin-top: 10px; font-size: 11.5px; line-height: 1.6; color: rgba(255,255,255,0.35); }
+
+  /* ── 按钮区 ── */
+  .card-footer { margin-top: 18px; display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+
+  .btn {
+    border: none; cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 500;
+    border-radius: 10px;
+    transition: transform 0.12s, background 0.15s, box-shadow 0.15s;
+    display: grid; place-items: center;
+  }
+  .btn:hover  { transform: scale(1.04); }
+  .btn:active { transform: scale(0.96); }
+
+  .btn-icon {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+  .btn-icon:hover { background: rgba(255,255,255,0.12); }
+
+  .btn-primary {
+    height: 38px; padding: 0 14px;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #fff;
+    box-shadow: rgba(99,102,241,0.4) 0px 4px 14px -4px;
+  }
+  .btn-primary:hover {
+    box-shadow: rgba(99,102,241,0.6) 0px 6px 18px -4px;
+  }
+
+  .btn-primary.cyan-btn {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    box-shadow: rgba(6,182,212,0.4) 0px 4px 14px -4px;
+  }
+  .btn-primary.warn-btn {
+    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+    box-shadow: rgba(245,158,11,0.4) 0px 4px 14px -4px;
+  }
+
+  /* ── 标签 ── */
+  .label {
+    position: absolute;
+    top: -40px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    white-space: nowrap;
+  }
+
+  /* ── 动画关键帧 ── */
+  @keyframes flow-blue {
+    0%   { transform: translate(-20vmin,-12vmin) scale(1)    rotate(0deg); }
+    20%  { transform: translate(10vmin, -20vmin) scale(1.1)  rotate(40deg); }
+    40%  { transform: translate(22vmin,  -2vmin) scale(0.95) rotate(80deg); }
+    60%  { transform: translate(12vmin,  18vmin) scale(1.12) rotate(120deg); }
+    80%  { transform: translate(-8vmin,  12vmin) scale(0.98) rotate(160deg); }
+    100% { transform: translate(-20vmin,-12vmin) scale(1)    rotate(360deg); }
+  }
+  @keyframes flow-purple {
+    0%   { transform: translate(18vmin, 14vmin) scale(1.05)  rotate(0deg); }
+    20%  { transform: translate(-10vmin,20vmin) scale(0.94)  rotate(-40deg); }
+    40%  { transform: translate(-24vmin, 2vmin) scale(1.14)  rotate(-80deg); }
+    60%  { transform: translate(-8vmin,-16vmin) scale(0.92)  rotate(-120deg); }
+    80%  { transform: translate(10vmin,-10vmin) scale(1.08)  rotate(-160deg); }
+    100% { transform: translate(18vmin, 14vmin) scale(1.05)  rotate(-360deg); }
+  }
+  @keyframes flow-cyan {
+    0%   { transform: translate(2vmin,  -4vmin) scale(1); }
+    25%  { transform: translate(-16vmin, 6vmin) scale(1.15); }
+    50%  { transform: translate(6vmin,  16vmin) scale(0.88); }
+    75%  { transform: translate(18vmin, -6vmin) scale(1.1); }
+    100% { transform: translate(2vmin,  -4vmin) scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fluid { animation-duration: 180s !important; }
+  }
+
+  /* ── 页脚说明 ── */
+  .footnote {
+    position: fixed;
+    bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 11.5px;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    white-space: nowrap;
+    z-index: 20;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- 流体光晕层 -->
+  <div class="fluid blue"></div>
+  <div class="fluid purple"></div>
+  <div class="fluid cyan"></div>
+
+  <!-- 噪声纹理 -->
+  <div class="bg-noise"></div>
+  <!-- 暗角 -->
+  <div class="bg-vignette"></div>
+
+  <!-- 卡片组 -->
+  <div class="cards" style="position:relative;">
+    <span class="label">LinguaAI · Character Cards · Visual Upgrade Preview</span>
+
+    <!-- Card 1 · Emma · Selected -->
+    <div class="card selected-cyan">
+      <div class="card-top">
+        <div class="avatar cyan active">E</div>
+        <span class="badge cyan">English</span>
+      </div>
+      <div class="card-body">
+        <div class="card-name">Emma</div>
+        <div class="card-bio">Friendly British tutor with a passion for literature and everyday conversation.</div>
+        <div class="card-style">Warm · Encouraging · Patient</div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-icon" title="Preview">🎧</button>
+        <button class="btn btn-primary cyan-btn">Start chat</button>
+      </div>
+    </div>
+
+    <!-- Card 2 · Jake · Default -->
+    <div class="card selected">
+      <div class="card-top">
+        <div class="avatar blue">J</div>
+        <span class="badge purple">English</span>
+      </div>
+      <div class="card-body">
+        <div class="card-name">Jake</div>
+        <div class="card-bio">Native New Yorker, loves slang, pop culture and direct feedback.</div>
+        <div class="card-style">Casual · Direct · Energetic</div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-icon">🎧</button>
+        <button class="btn btn-primary">Start chat</button>
+      </div>
+    </div>
+
+    <!-- Card 3 · Carlos -->
+    <div class="card">
+      <div class="card-top">
+        <div class="avatar warn">C</div>
+        <span class="badge warn">Spanish</span>
+      </div>
+      <div class="card-body">
+        <div class="card-name">Carlos</div>
+        <div class="card-bio">Mexican storyteller who makes Spanish feel alive through music and culture.</div>
+        <div class="card-style">Expressive · Vivid · Cultural</div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-icon">🎧</button>
+        <button class="btn btn-primary warn-btn">Start chat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footnote">Fluid orbs · Grain texture · Tri-layer shadow · Glow selection</div>
+
+</body>
+</html>

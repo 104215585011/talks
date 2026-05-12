@@ -15,9 +15,9 @@
 
 ---
 
-## 已验证基线（2026-05-12）
+## 已验证基线（2026-05-12，最新）
 
-- `npm test -- --runInBand`：28 suites / 84 tests passing
+- `npm test -- --runInBand`：30 suites / 87 tests passing
 - `npx tsc --noEmit`：✅
 - `npm run lint`：✅
 - `npm run build`：✅

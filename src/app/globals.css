@@ -163,19 +163,51 @@ a {
   animation: fluid-cyan 44s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
+/* ── 自定义滚动条：细线半透明，hover 才明显 ── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* 流体光球：减速到几乎静止，但不停止（停止会导致突然跳变） */
   .animate-fluid-blue,
   .animate-fluid-purple,
   .animate-fluid-cyan {
     animation-duration: 180s !important;
   }
 
+  /* 其他过渡动画：合理缩短而非 0.01ms（0.01ms 会让浏览器疯狂重绘） */
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.3ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.15ms !important;
   }
 }
