@@ -146,6 +146,7 @@ export function createSpeechSynthesizer({
             chunk_length: 300,
             format: "mp3",
             latency: env.FISH_AUDIO_LATENCY ?? FISH_AUDIO_DEFAULT_LATENCY,
+            model: env.FISH_AUDIO_MODEL ?? "s1",
             normalize: true,
             reference_id: voice.voiceId,
             sample_rate: 44100,
@@ -160,8 +161,7 @@ export function createSpeechSynthesizer({
           }),
           headers: {
             authorization: `Bearer ${env.FISH_AUDIO_API_KEY}`,
-            "content-type": "application/json",
-            model: env.FISH_AUDIO_MODEL ?? "s2-pro"
+            "content-type": "application/json"
           },
           method: "POST"
         });

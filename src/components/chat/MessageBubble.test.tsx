@@ -19,7 +19,7 @@ describe("MessageBubble", () => {
 
   beforeEach(() => {
     scrollHeightSpy = jest.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockImplementation(
-      function getScrollHeight() {
+      function getScrollHeight(this: HTMLElement) {
         return this.dataset.testid === "assistant-message-content" ? 320 : 120;
       }
     );

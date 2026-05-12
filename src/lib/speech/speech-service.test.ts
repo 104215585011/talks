@@ -76,6 +76,7 @@ describe("speech service", () => {
       expect.objectContaining({
         format: "mp3",
         latency: "balanced",
+        model: "s1",
         reference_id: "voice-emma",
         text: "Hello there"
       })
@@ -85,11 +86,12 @@ describe("speech service", () => {
       expect.objectContaining({
         headers: expect.objectContaining({
           authorization: "Bearer real-fish-key",
-          model: "s2-pro"
+          "content-type": "application/json"
         }),
         method: "POST"
       })
     );
+    expect(requestInit.headers).not.toHaveProperty("model");
   });
 
   test("falls back to Azure TTS when Fish Audio is unavailable", async () => {

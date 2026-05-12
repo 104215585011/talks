@@ -1,6 +1,6 @@
 import { POST } from "./route";
 import { signAccessToken } from "@/lib/auth/token";
-import { streamChatMessage } from "@/lib/chat/chat-service";
+import { streamChatMessage, type ChatStreamEvent } from "@/lib/chat/chat-service";
 
 const jwtSecret = "test-secret-that-is-long-enough-for-hs256";
 
@@ -63,11 +63,12 @@ describe("chat message API route", () => {
   });
 
   test("POST /api/chat/message streams deltas and done events for authenticated users", async () => {
-    jest.mocked(streamChatMessage).mockImplementation(async function* () {
+    jest.mocked(streamChatMessage).mockImplementation(async function* (): AsyncGenerator<ChatStreamEvent> {
       yield { type: "delta", text: "Hi" };
       yield { type: "delta", text: " there" };
       yield {
         type: "done",
+        assistantText: "Hi there",
         sessionId: "session_1",
         corrections: ["Say: Hello there."],
         newWords: ["there"]
@@ -97,7 +98,7 @@ describe("chat message API route", () => {
     expect(text).toContain('event: delta\ndata: {"text":"Hi"}');
     expect(text).toContain('event: delta\ndata: {"text":" there"}');
     expect(text).toContain(
-      'event: done\ndata: {"sessionId":"session_1","corrections":["Say: Hello there."],"newWords":["there"]}'
+      'event: done\ndata: {"assistantText":"Hi there","sessionId":"session_1","corrections":["Say: Hello there."],"newWords":["there"]}'
     );
     expect(streamChatMessage).toHaveBeenCalledWith(
       expect.any(Object),

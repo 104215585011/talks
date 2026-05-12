@@ -489,14 +489,15 @@ export function ChatWorkspace({ characters }: ChatWorkspaceProps) {
       });
 
       if (!response.ok) {
-        throw new Error("TTS request failed");
+        throw new Error(`TTS request failed with status ${response.status}`);
       }
 
       await playAudioResponse(response, {
         onEnd: () => setSpeakingMessageId(null),
         onError: () => setSpeakingMessageId(null)
       });
-    } catch {
+    } catch (error) {
+      console.error("Failed to play assistant audio", error);
       setSpeakingMessageId(null);
     }
   }

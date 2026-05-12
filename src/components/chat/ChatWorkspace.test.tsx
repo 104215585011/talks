@@ -161,7 +161,7 @@ describe("ChatWorkspace mobile mentor drawer", () => {
           })
         },
         ok: true
-      } as Response;
+      } as unknown as Response;
     }) as jest.Mock;
 
     render(<ChatWorkspace characters={characters} />);
@@ -325,7 +325,7 @@ describe("ChatWorkspace mobile mentor drawer", () => {
           })
         },
         ok: true
-      } as Response;
+      } as unknown as Response;
     });
     global.fetch = fetchMock as jest.Mock;
 

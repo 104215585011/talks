@@ -8,7 +8,7 @@
 - **标准验证路径**：`npm test -- --runInBand`（27 suites, 83 tests passing，2026-05-12 已验证）
 - **Lint / Build**：`npm run lint` ✅，`npm run build` ✅（2026-05-12 已验证）
 - **E2E**：`npm run test:e2e`（历史记录：7 Playwright tests passing；本轮未重跑）
-- **当前最高优先级未完成功能**：TICKET-705（报告页数据卡片）、TICKET-706（全局按钮微交互）
+- **当前最高优先级未完成功能**：TICKET-712（TTS 读音修复 P1）、TICKET-705（报告页数据卡片）、TICKET-706（全局按钮微交互）
 - **当前 blocker**：无
 
 ---
@@ -55,9 +55,14 @@
   - 确认 `CLAUDE.md` / `claude-progress.md` / `feature_list.json` / `init.sh` 已就位
   - 确认 `feature_list.json` 是合法 JSON
   - 将标准测试结果更新为 27 suites / 83 tests passing
-  - 确认当前未完成任务仍为 TICKET-705（报告页）和 TICKET-706（按钮微交互）
-- **运行过的验证**：`npm test -- --runInBand`、`npm run lint`、`npm run build`
-- **下一步最佳动作**：TICKET-705（报告页数据卡片升级）或 TICKET-706（全局按钮微交互）
+  - 确认当前最高优先级为 TICKET-712（TTS 读音修复）
+  - 修复 Fish Audio TTS 请求：`model` 从 HTTP header 移入 JSON body
+  - 默认 Fish Audio model 改为 `s1`，并同步 `.env.local.example`
+  - 本机 `.env.local` 的 `FISH_AUDIO_MODEL` 已从 `s2-pro` 调整为 `s1`
+  - `playAssistantAudio()` 失败时现在会 `console.error("Failed to play assistant audio", error)`，不再静默失败
+  - 清理 `npx tsc --noEmit --incremental false` 暴露的测试类型问题
+- **运行过的验证**：`npx tsc --noEmit --incremental false`、`npm test -- --runInBand`、`npm run lint`、`npm run build`
+- **下一步最佳动作**：人工打开 `/chat`，点击 Emma/Jake 任意 AI 消息的 Volume2 按钮，确认能听到声音；通过后将 TICKET-712 标记为 `passing`，否则根据 console/network 错误继续排查
 
 ### 2026-05-11
 - **本轮目标**：Claude2 视觉审查 mmguo.dev → 全站视觉升级

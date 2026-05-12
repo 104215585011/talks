@@ -114,6 +114,20 @@
       "notes": ""
     },
     {
+      "id": "s7-712",
+      "priority": 1,
+      "area": "chat",
+      "title": "TTS 读音功能修复",
+      "user_visible_behavior": "点击聊天气泡 Volume2 按钮能播出角色声音",
+      "status": "in_progress",
+      "verification": [
+        "点击 Emma 或 Jake 任意消息的读音按钮，能听到声音",
+        "Fish Audio 请求失败时控制台有明确错误日志"
+      ],
+      "evidence": "2026-05-12 Codex1 已修复 Fish Audio model 参数位置：从 header 移到 request body；默认 model 改为 s1；补充失败 console.error；npx tsc --noEmit --incremental false、npm run lint、npm test -- --runInBand、npm run build 均通过。待人工点击 Volume2 确认实际出声后标 passing。",
+      "notes": "参考 sprint-7-tickets.md TICKET-712；剩余验收：浏览器中点击 Emma/Jake 任意消息 Volume2，确认能听到声音"
+    },
+    {
       "id": "s7-705",
       "priority": 2,
       "area": "report",
