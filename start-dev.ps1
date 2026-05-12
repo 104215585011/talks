@@ -35,5 +35,11 @@ if ($stillListening) {
   throw "Port $Port is still occupied. Please close the process manually and retry."
 }
 
+$nextDir = Join-Path $PSScriptRoot ".next"
+if (Test-Path -LiteralPath $nextDir) {
+  Write-Host "Clearing stale .next build output..." -ForegroundColor Yellow
+  Remove-Item -LiteralPath $nextDir -Recurse -Force
+}
+
 Write-Host "Starting Next.js dev server on http://localhost:$Port ..." -ForegroundColor Green
 npm run dev -- -p $Port
