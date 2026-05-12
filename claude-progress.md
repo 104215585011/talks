@@ -77,3 +77,19 @@
   - 安装 prompts-chat MCP
 - **运行过的验证**：Playwright screenshots on localhost:3000
 - **下一步最佳动作**：TICKET-705（报告页）或 TICKET-706（按钮微交互）
+
+### 2026-05-12 · TICKET-705
+- **Goal**: Sprint 7 TICKET-705 report page metric card visual upgrade.
+- **Completed**:
+  - `/report` mounts low-intensity `FluidBackground`.
+  - Metric cards use dark glass surfaces, metric-specific top accent lines, and Framer Motion count-up values.
+  - Added `src/components/report/LearningReport.test.tsx` to lock the TICKET-705 acceptance points.
+- **Verification**:
+  - `npm test -- src/components/report/LearningReport.test.tsx --runInBand` passed.
+  - `npx tsc --noEmit --incremental false` passed.
+  - `npm run lint` passed.
+  - `npm test -- --runInBand` passed: 28 suites / 84 tests.
+  - `npm run build` passed.
+  - Local dev `/report` returned HTTP 200 after clearing stale `.next` cache and restarting port 3000.
+- **Note**: Playwright browser probe timed out while navigating to localhost in this Codex session, so visual evidence is covered by component test + HTTP route check rather than screenshot.
+- **Next best action**: TICKET-706 global button micro-interaction.

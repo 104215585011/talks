@@ -133,13 +133,14 @@
       "area": "report",
       "title": "报告页数据卡片升级",
       "user_visible_behavior": "数据卡片为 glass 风格，分数有计数入场动画",
-      "status": "not_started",
+      "status": "passing",
       "verification": [
-        "访问 /report，卡片为深色毛玻璃",
-        "页面加载时分数从 0 动画到实际值"
+        "Visit /report: metric cards render as dark glass cards with top accent lines.",
+        "Metric numbers animate from 0 to the real values via Framer Motion.",
+        "Low-intensity FluidBackground renders behind the report page."
       ],
-      "evidence": "",
-      "notes": "参考 sprint-7-tickets.md TICKET-705"
+      "evidence": "2026-05-12 Codex1: added LearningReport glass metric cards, low-intensity FluidBackground, Framer Motion count-up values, and src/components/report/LearningReport.test.tsx. Verified npm test -- src/components/report/LearningReport.test.tsx --runInBand, npx tsc --noEmit --incremental false, npm run lint, npm test -- --runInBand (28 suites / 84 tests), npm run build, and local /report HTTP 200.",
+      "notes": "Playwright network-level visual probe was blocked by local browser navigation timeout in this Codex session; unit tests and local HTTP route verification passed. Next open ticket: s7-706."
     },
     {
       "id": "s7-706",
