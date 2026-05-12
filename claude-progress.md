@@ -93,3 +93,21 @@
   - Local dev `/report` returned HTTP 200 after clearing stale `.next` cache and restarting port 3000.
 - **Note**: Playwright browser probe timed out while navigating to localhost in this Codex session, so visual evidence is covered by component test + HTTP route check rather than screenshot.
 - **Next best action**: TICKET-706 global button micro-interaction.
+
+### 2026-05-12 · TICKET-705 P0 Follow-up
+- **Issue**: `/report` could make the Next dev server enter a bad state: port 3000 listened, but `/report`, `/api/user/stats`, and static chunks timed out or returned 500. Codex2 reproduced this as a P0 blocker.
+- **Root cause direction**: `/report` initial client module included Chart.js/react-chartjs-2 directly. In Next dev this produced unstable chunk state (`Cannot find module './948.js'`, `clientModules` undefined) and then request hangs.
+- **Fix**:
+  - Moved Chart.js/react-chartjs-2 code into `src/components/report/ReportCharts.tsx`.
+  - `LearningReport.tsx` now loads `ReportCharts` through `next/dynamic` with `ssr: false` and a lightweight loading skeleton.
+  - Added `src/components/report/ReportCharts.test.tsx`.
+- **Verification**:
+  - `/report` HTTP 200.
+  - `/_next/static/chunks/main-app.js` HTTP 200.
+  - Unauthenticated `/api/user/stats` HTTP 401, no timeout.
+  - In-app browser new tab renders the report DOM.
+  - `npx tsc --noEmit --incremental false` passed.
+  - `npm run lint` passed.
+  - `npm test -- --runInBand` passed: 29 suites / 85 tests.
+  - `npm run build` passed; `/report` initial route size is 8.86 kB.
+- **Next best action**: TICKET-706 global button micro-interaction.

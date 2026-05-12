@@ -9,7 +9,9 @@
       "title": "全局 Nav Bar",
       "user_visible_behavior": "所有页面顶部有 Logo、返回角色选择、登出按钮",
       "status": "passing",
-      "verification": ["访问 /chat，顶部可见 LinguaAI logo 和登出按钮"],
+      "verification": [
+        "访问 /chat，顶部可见 LinguaAI logo 和登出按钮"
+      ],
       "evidence": "Sprint 5 QA 通过",
       "notes": ""
     },
@@ -20,7 +22,9 @@
       "title": "Learning notes 真实 API 修复",
       "user_visible_behavior": "真实对话后显示词汇高亮和纠错笔记",
       "status": "passing",
-      "verification": ["发送一条消息，AI 回复后出现词汇高亮（彩色文字）"],
+      "verification": [
+        "发送一条消息，AI 回复后出现词汇高亮（彩色文字）"
+      ],
       "evidence": "Sprint 5 QA 通过，截图可见高亮词汇",
       "notes": ""
     },
@@ -31,7 +35,9 @@
       "title": "消息自动滚动到底部",
       "user_visible_behavior": "发送消息后自动滚到最新消息",
       "status": "passing",
-      "verification": ["发送消息后页面自动定位到底部"],
+      "verification": [
+        "发送消息后页面自动定位到底部"
+      ],
       "evidence": "Sprint 5 QA 通过",
       "notes": ""
     },
@@ -42,7 +48,9 @@
       "title": "聊天历史加载",
       "user_visible_behavior": "进入聊天时加载该角色上次会话记录",
       "status": "passing",
-      "verification": ["与 Emma 聊天后退出，再次进入，历史消息存在"],
+      "verification": [
+        "与 Emma 聊天后退出，再次进入，历史消息存在"
+      ],
       "evidence": "Sprint 5 QA 通过",
       "notes": ""
     },
@@ -53,7 +61,11 @@
       "title": "PWA 支持",
       "user_visible_behavior": "手机浏览器可安装到桌面，键盘弹起时界面自适应",
       "status": "passing",
-      "verification": ["manifest.json 存在", "iOS meta tags 存在", "visualViewport 键盘适配"],
+      "verification": [
+        "manifest.json 存在",
+        "iOS meta tags 存在",
+        "visualViewport 键盘适配"
+      ],
       "evidence": "Sprint 6 完成",
       "notes": ""
     },
@@ -79,7 +91,9 @@
       "title": "登录/注册页深色毛玻璃",
       "user_visible_behavior": "表单卡片为深色半透明毛玻璃，输入框深色底",
       "status": "passing",
-      "verification": ["访问 /login，表单卡片为深色，不是白色"],
+      "verification": [
+        "访问 /login，表单卡片为深色，不是白色"
+      ],
       "evidence": "Claude2 Playwright 截图验证通过，2026-05-11",
       "notes": ""
     },
@@ -139,8 +153,8 @@
         "Metric numbers animate from 0 to the real values via Framer Motion.",
         "Low-intensity FluidBackground renders behind the report page."
       ],
-      "evidence": "2026-05-12 Codex1: added LearningReport glass metric cards, low-intensity FluidBackground, Framer Motion count-up values, and src/components/report/LearningReport.test.tsx. Verified npm test -- src/components/report/LearningReport.test.tsx --runInBand, npx tsc --noEmit --incremental false, npm run lint, npm test -- --runInBand (28 suites / 84 tests), npm run build, and local /report HTTP 200.",
-      "notes": "Playwright network-level visual probe was blocked by local browser navigation timeout in this Codex session; unit tests and local HTTP route verification passed. Next open ticket: s7-706."
+      "evidence": "2026-05-12 Codex1: report page glass metric cards + FluidBackground + Framer count-up completed; follow-up P0 fix split Chart.js into a client-only dynamic ReportCharts chunk after Codex2 reproduced /report dev-server hang. Verified /report HTTP 200, /_next/static/chunks/main-app.js HTTP 200, unauthenticated /api/user/stats HTTP 401, in-app browser DOM renders report page, npx tsc --noEmit --incremental false, npm run lint, npm test -- --runInBand (29 suites / 85 tests), and npm run build. Build reduced /report initial route size to 8.86 kB.",
+      "notes": "P0 /report???????Chart.js no longer lives in the initial LearningReport module; it loads through src/components/report/ReportCharts.tsx with next/dynamic ssr:false. Next open ticket: s7-706."
     },
     {
       "id": "s7-706",
