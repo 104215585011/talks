@@ -1,0 +1,176 @@
+{
+  "project": "LinguaAI",
+  "last_updated": "2026-05-12",
+  "features": [
+    {
+      "id": "s5-501",
+      "priority": 1,
+      "area": "navigation",
+      "title": "全局 Nav Bar",
+      "user_visible_behavior": "所有页面顶部有 Logo、返回角色选择、登出按钮",
+      "status": "passing",
+      "verification": ["访问 /chat，顶部可见 LinguaAI logo 和登出按钮"],
+      "evidence": "Sprint 5 QA 通过",
+      "notes": ""
+    },
+    {
+      "id": "s5-502",
+      "priority": 1,
+      "area": "chat",
+      "title": "Learning notes 真实 API 修复",
+      "user_visible_behavior": "真实对话后显示词汇高亮和纠错笔记",
+      "status": "passing",
+      "verification": ["发送一条消息，AI 回复后出现词汇高亮（彩色文字）"],
+      "evidence": "Sprint 5 QA 通过，截图可见高亮词汇",
+      "notes": ""
+    },
+    {
+      "id": "s5-503",
+      "priority": 2,
+      "area": "chat",
+      "title": "消息自动滚动到底部",
+      "user_visible_behavior": "发送消息后自动滚到最新消息",
+      "status": "passing",
+      "verification": ["发送消息后页面自动定位到底部"],
+      "evidence": "Sprint 5 QA 通过",
+      "notes": ""
+    },
+    {
+      "id": "s5-509",
+      "priority": 2,
+      "area": "chat",
+      "title": "聊天历史加载",
+      "user_visible_behavior": "进入聊天时加载该角色上次会话记录",
+      "status": "passing",
+      "verification": ["与 Emma 聊天后退出，再次进入，历史消息存在"],
+      "evidence": "Sprint 5 QA 通过",
+      "notes": ""
+    },
+    {
+      "id": "s6-601",
+      "priority": 3,
+      "area": "pwa",
+      "title": "PWA 支持",
+      "user_visible_behavior": "手机浏览器可安装到桌面，键盘弹起时界面自适应",
+      "status": "passing",
+      "verification": ["manifest.json 存在", "iOS meta tags 存在", "visualViewport 键盘适配"],
+      "evidence": "Sprint 6 完成",
+      "notes": ""
+    },
+    {
+      "id": "s7-701",
+      "priority": 1,
+      "area": "visual",
+      "title": "FluidBackground 全局背景组件",
+      "user_visible_behavior": "角色选择页和聊天页有蓝紫色流体光晕背景动效",
+      "status": "passing",
+      "verification": [
+        "访问 /characters，背景有蓝紫色渐变光晕",
+        "访问 /chat，背景有轻微蓝色环境光",
+        "DevTools 中可见 fluid-orb-blue / fluid-orb-purple 元素"
+      ],
+      "evidence": "Claude2 Playwright 截图验证通过，2026-05-11",
+      "notes": "blur 已从 130px 优化到 72px 降低 GPU 负载"
+    },
+    {
+      "id": "s7-702",
+      "priority": 1,
+      "area": "auth",
+      "title": "登录/注册页深色毛玻璃",
+      "user_visible_behavior": "表单卡片为深色半透明毛玻璃，输入框深色底",
+      "status": "passing",
+      "verification": ["访问 /login，表单卡片为深色，不是白色"],
+      "evidence": "Claude2 Playwright 截图验证通过，2026-05-11",
+      "notes": ""
+    },
+    {
+      "id": "s7-703",
+      "priority": 1,
+      "area": "characters",
+      "title": "角色选择页视觉升级",
+      "user_visible_behavior": "角色卡片有三层阴影、选中 glow、流体背景",
+      "status": "passing",
+      "verification": [
+        "5 张卡片排成一行（1440px）",
+        "选中卡片有颜色 glow",
+        "背景有流体光晕"
+      ],
+      "evidence": "Claude2 Playwright 截图验证通过，2026-05-11",
+      "notes": ""
+    },
+    {
+      "id": "s7-704",
+      "priority": 1,
+      "area": "chat",
+      "title": "聊天页视觉升级",
+      "user_visible_behavior": "AI 气泡半透明深色+左侧主题色线条，用户气泡紫色渐变",
+      "status": "passing",
+      "verification": [
+        "AI 气泡左侧有角色主题色竖线",
+        "用户气泡为紫色渐变",
+        "侧边栏选中角色有左侧竖线高亮"
+      ],
+      "evidence": "用户截图验证通过，2026-05-11",
+      "notes": ""
+    },
+    {
+      "id": "s7-705",
+      "priority": 2,
+      "area": "report",
+      "title": "报告页数据卡片升级",
+      "user_visible_behavior": "数据卡片为 glass 风格，分数有计数入场动画",
+      "status": "not_started",
+      "verification": [
+        "访问 /report，卡片为深色毛玻璃",
+        "页面加载时分数从 0 动画到实际值"
+      ],
+      "evidence": "",
+      "notes": "参考 sprint-7-tickets.md TICKET-705"
+    },
+    {
+      "id": "s7-706",
+      "priority": 2,
+      "area": "ui",
+      "title": "全局按钮微交互",
+      "user_visible_behavior": "所有按钮 hover 时 scale(1.04)，点击时 scale(0.96)",
+      "status": "not_started",
+      "verification": [
+        "hover Primary 按钮，有轻微放大",
+        "点击按钮，有轻微缩小",
+        "disabled 按钮无动画"
+      ],
+      "evidence": "",
+      "notes": "参考 sprint-7-tickets.md TICKET-706，在 Button.tsx 组件层统一"
+    },
+    {
+      "id": "s7-710",
+      "priority": 1,
+      "area": "chat",
+      "title": "AI 消息长文折叠",
+      "user_visible_behavior": "AI 回复超过 260px 高度自动折叠，底部渐变 + Show more 按钮",
+      "status": "passing",
+      "verification": [
+        "发送触发长回复的消息，气泡底部出现 Show more",
+        "点击展开全文",
+        "短消息无折叠按钮"
+      ],
+      "evidence": "用户截图可见 Show more 按钮；2026-05-12 npm test -- --runInBand 通过（27 suites / 83 tests）",
+      "notes": ""
+    },
+    {
+      "id": "s7-711",
+      "priority": 1,
+      "area": "chat",
+      "title": "聊天固定窗口 + 滚动锚定",
+      "user_visible_behavior": "聊天窗口不随消息增多撑高，新消息自动定位到底部",
+      "status": "passing",
+      "verification": [
+        "多条消息后窗口高度不变",
+        "右侧出现滚动条",
+        "新消息自动滚到底部"
+      ],
+      "evidence": "用户截图可见滚动条，窗口固定；2026-05-12 npm test -- --runInBand 通过（27 suites / 83 tests）",
+      "notes": ""
+    }
+  ]
+}
